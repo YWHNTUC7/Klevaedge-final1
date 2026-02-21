@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}FAQ - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+    <div>
+        <h1 class="text-2xl font-bold text-white">Frequently Asked Questions</h1>
+        <p class="text-gray-400 text-sm mt-1">Everything you need to know about Klevaedge</p>
+    </div>
+
+    <!-- Getting Started -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-dark-border flex items-center gap-3">
+            <div class="w-8 h-8 bg-primary-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-rocket text-primary-400 text-sm"></i>
+            </div>
+            <h2 class="text-white font-bold">Getting Started</h2>
+        </div>
+        <div class="divide-y divide-dark-border">
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">How do I create an account?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Click <strong class="text-white">Get Started</strong> on the homepage, enter your name, email and password. Your account is ready immediately — you can deposit and start trading right away.
+                </div>
+            </details>
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">Is there a minimum deposit?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Yes, the minimum deposit is <strong class="text-white">$10 USD</strong> equivalent in any supported cryptocurrency.
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Deposits & Withdrawals -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-dark-border flex items-center gap-3">
+            <div class="w-8 h-8 bg-green-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-wallet text-green-400 text-sm"></i>
+            </div>
+            <h2 class="text-white font-bold">Deposits & Withdrawals</h2>
+        </div>
+        <div class="divide-y divide-dark-border">
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">How long do deposits take?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Deposits are credited after blockchain confirmations: Bitcoin (~30 min), Ethereum (~3 min), USDT (varies), Litecoin (~15 min). Once confirmed and approved by our team your balance updates instantly.
+                </div>
+            </details>
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">How long do withdrawals take?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Withdrawals are typically processed within <strong class="text-white">24–48 hours</strong>. Once approved, delivery time depends on network speed.
+                </div>
+            </details>
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">Are there any fees?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Klevaedge does not charge deposit fees. Withdrawal fees vary by cryptocurrency and network conditions — the exact fee is shown before you confirm.
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Security -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-dark-border flex items-center gap-3">
+            <div class="w-8 h-8 bg-yellow-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-shield-alt text-yellow-400 text-sm"></i>
+            </div>
+            <h2 class="text-white font-bold">Security & Safety</h2>
+        </div>
+        <div class="divide-y divide-dark-border">
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">Is Klevaedge safe?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Yes. We use SSL encryption, secure password hashing, and regular security reviews to protect your account and funds at all times.
+                </div>
+            </details>
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">How do I keep my account secure?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Use a strong unique password and never share your credentials. Always verify you are on the official Klevaedge website before entering any information.
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Trading -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-dark-border flex items-center gap-3">
+            <div class="w-8 h-8 bg-purple-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chart-line text-purple-400 text-sm"></i>
+            </div>
+            <h2 class="text-white font-bold">Trading & Profits</h2>
+        </div>
+        <div class="divide-y divide-dark-border">
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">How do I make profits?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Profits are generated through our expert trading strategies, copy trading, staking, and subscription plans. You can track real-time growth directly on your dashboard.
+                </div>
+            </details>
+            <details class="group">
+                <summary class="flex items-center justify-between px-5 py-4 cursor-pointer list-none hover:bg-dark-hover transition">
+                    <span class="text-white text-sm font-medium">Can I withdraw my profits anytime?</span>
+                    <i class="fas fa-chevron-down text-gray-400 text-xs transition-transform group-open:rotate-180 flex-shrink-0 ml-3"></i>
+                </summary>
+                <div class="px-5 pb-4 text-gray-400 text-sm leading-relaxed">
+                    Yes — you can withdraw your full balance including profits at any time, subject to the minimum withdrawal amount of <strong class="text-white">$10</strong>.
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center">
+        <p class="text-gray-400 text-sm mb-4">Still have questions?</p>
+        <a href="{{ url_for('contact') }}"
+            class="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-semibold text-sm transition glow">
+            <i class="fas fa-paper-plane"></i> Contact Support
+        </a>
+    </div>
+
+</div>
+{% endblock %}

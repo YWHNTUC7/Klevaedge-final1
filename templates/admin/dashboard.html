@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
+            <p class="text-gray-400 text-sm mt-1">Manage users and transactions</p>
+        </div>
+        <div class="flex items-center space-x-2 bg-primary-600 bg-opacity-20 border border-primary-600 border-opacity-30 px-4 py-2 rounded-xl">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <span class="text-primary-400 text-sm font-medium">{{ users|length }} Users</span>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+            <p class="text-gray-400 text-xs mb-1">Total Users</p>
+            <p class="text-2xl font-bold text-white">{{ users|length }}</p>
+        </div>
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+            <p class="text-gray-400 text-xs mb-1">Total Balance</p>
+            <p class="text-2xl font-bold text-white">${{ "%.0f"|format(users|sum(attribute='balance')) }}</p>
+        </div>
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+            <p class="text-gray-400 text-xs mb-1">Total Profit</p>
+            <p class="text-2xl font-bold text-green-400">${{ "%.0f"|format(users|sum(attribute='profit')) }}</p>
+        </div>
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+            <p class="text-gray-400 text-xs mb-1">Total Deposits</p>
+            <p class="text-2xl font-bold text-blue-400">${{ "%.0f"|format(users|sum(attribute='total_deposit')) }}</p>
+        </div>
+    </div>
+
+    <!-- Management Links -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <a href="{{ url_for('admin_trades') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-chart-bar text-2xl text-primary-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Trades</p>
+            <p class="text-gray-500 text-xs">Manage open trades</p>
+        </a>
+        <a href="{{ url_for('admin_copy_trades') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-copy text-2xl text-green-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Copy Trades</p>
+            <p class="text-gray-500 text-xs">Manage copy trades</p>
+        </a>
+        <a href="{{ url_for('admin_stakes') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-coins text-2xl text-yellow-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Stakes</p>
+            <p class="text-gray-500 text-xs">Manage staking pools</p>
+        </a>
+        <a href="{{ url_for('admin_subscriptions') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-server text-2xl text-purple-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Subscriptions</p>
+            <p class="text-gray-500 text-xs">Manage plans</p>
+        </a>
+        <a href="{{ url_for('admin_signals') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-broadcast-tower text-2xl text-blue-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Signals</p>
+            <p class="text-gray-500 text-xs">Manage signal purchases</p>
+        </a>
+        <a href="{{ url_for('admin_traders') }}" class="bg-dark-card border border-dark-border hover:border-primary-500 rounded-2xl p-4 text-center transition group">
+            <i class="fas fa-user-tie text-2xl text-pink-400 mb-2 block"></i>
+            <p class="text-white font-semibold text-sm">Copy Traders</p>
+            <p class="text-gray-500 text-xs">Add / edit traders</p>
+        </a>
+    </div>
+
+    <!-- Search -->
+    <div class="flex items-center bg-dark-card border border-dark-border rounded-xl px-4 py-3 space-x-3">
+        <i class="fas fa-search text-gray-500"></i>
+        <input type="text" id="user-search" oninput="searchUsers()" placeholder="Search users by name or email..."
+            class="bg-transparent text-white text-sm flex-1 focus:outline-none placeholder-gray-500">
+    </div>
+
+    <!-- Desktop Table (hidden on mobile) -->
+    <div class="hidden sm:block bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-dark-border">
+            <h2 class="text-lg font-bold text-white">All Users</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full" id="users-table">
+                <thead>
+                    <tr class="border-b border-dark-border">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">User</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Balance</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Profit</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Joined</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody">
+                    {% for user in users %}
+                    <tr class="border-b border-dark-border hover:bg-dark-hover transition user-row"
+                        data-name="{{ user['name']|lower }}" data-email="{{ user['email']|lower }}">
+                        <td class="px-4 py-4 text-sm text-gray-400">#{{ user['id'] }}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                    {{ user['name'][0].upper() }}
+                                </div>
+                                <div>
+                                    <p class="text-white font-semibold text-sm">{{ user['name'] }}</p>
+                                    <p class="text-gray-400 text-xs">{{ user['email'] }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-white font-semibold text-sm">${{ "%.2f"|format(user['balance']) }}</td>
+                        <td class="px-4 py-4 text-green-400 font-semibold text-sm">${{ "%.2f"|format(user['profit']) }}</td>
+                        <td class="px-4 py-4 text-gray-400 text-sm">{{ user['created_at'][:10] }}</td>
+                        <td class="px-4 py-4">
+                            <a href="{{ url_for('admin_edit_user', user_id=user['id']) }}"
+                               class="inline-flex items-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+                                <i class="fas fa-edit mr-1.5"></i> Edit
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile Cards (shown only on mobile) -->
+    <div class="sm:hidden space-y-3" id="mobile-user-list">
+        {% for user in users %}
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4 user-card"
+             data-name="{{ user['name']|lower }}" data-email="{{ user['email']|lower }}">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full flex items-center justify-center text-white font-bold">
+                        {{ user['name'][0].upper() }}
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm">{{ user['name'] }}</p>
+                        <p class="text-gray-400 text-xs">{{ user['email'] }}</p>
+                    </div>
+                </div>
+                <span class="text-gray-500 text-xs">#{{ user['id'] }}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-3">
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Balance</p>
+                    <p class="text-white font-bold text-sm">${{ "%.0f"|format(user['balance']) }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Profit</p>
+                    <p class="text-green-400 font-bold text-sm">${{ "%.0f"|format(user['profit']) }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Joined</p>
+                    <p class="text-white font-bold text-xs">{{ user['created_at'][:10] }}</p>
+                </div>
+            </div>
+            <a href="{{ url_for('admin_edit_user', user_id=user['id']) }}"
+               class="w-full bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold py-2.5 rounded-xl transition flex items-center justify-center">
+                <i class="fas fa-edit mr-2"></i> Edit User
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+function searchUsers() {
+    const q = document.getElementById('user-search').value.toLowerCase();
+    // Desktop rows
+    document.querySelectorAll('.user-row').forEach(row => {
+        const match = row.dataset.name.includes(q) || row.dataset.email.includes(q);
+        row.style.display = match ? '' : 'none';
+    });
+    // Mobile cards
+    document.querySelectorAll('.user-card').forEach(card => {
+        const match = card.dataset.name.includes(q) || card.dataset.email.includes(q);
+        card.style.display = match ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

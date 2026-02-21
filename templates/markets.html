@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Markets - Klevaedge{% endblock %}
+{% block extra_css %}
+<style>
+@media (min-width: 640px)  { #market-chart { height: 340px !important; } }
+@media (min-width: 1024px) { #market-chart { height: 460px !important; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <h1 class="text-2xl font-bold text-white">Markets</h1>
+
+    <!-- Market Selector Card -->
+    <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center" id="market-icon-wrap">
+                    <i class="fab fa-bitcoin text-yellow-500 text-xl" id="market-icon-i"></i>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-xs mb-1">Select Market</p>
+                    <div class="relative">
+                        <select id="market-sel" onchange="updateMarket()" class="appearance-none bg-dark-hover border border-dark-border text-white font-bold text-base px-4 py-2 pr-8 rounded-xl focus:outline-none focus:border-primary-500 cursor-pointer w-full">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="tether">Tether (USDT)</option>
+                            <option value="solana">Solana (SOL)</option>
+                            <option value="ripple">XRP (XRP)</option>
+                            <option value="dogecoin">Dogecoin (DOGE)</option>
+                            <option value="litecoin">Litecoin (LTC)</option>
+                            <option value="cardano">Cardano (ADA)</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-2xl font-bold text-green-400" id="market-price">—</p>
+                <p class="text-xs text-gray-400">Current Price</p>
+                <p class="text-xs" id="market-change"></p>
+            </div>
+        </div>
+        <!-- Chart -->
+        <div id="market-chart" class="rounded-xl overflow-hidden" style="height:240px;">
+            <iframe id="market-iframe" src="https://s.tradingview.com/widgetembed/?frameElementId=mkt&symbol=BINANCE%3ABTCUSDT&interval=60&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=0&saveimage=0&toolbarbg=1a1d27&theme=dark&style=1&timezone=Etc%2FUTC&locale=en" style="width:100%;height:100%;border:0;" scrolling="no" allowtransparency="true"></iframe>
+        </div>
+    </div>
+
+    <!-- Market List -->
+    <div id="mkt-list" class="space-y-3"></div>
+</div>
+
+<script>
+const CHART_SYMBOLS = {
+    bitcoin: 'BINANCE:BTCUSDT',
+    ethereum: 'BINANCE:ETHUSDT',
+    tether: 'BINANCE:USDTBUSD',
+    solana: 'BINANCE:SOLUSDT',
+    ripple: 'BINANCE:XRPUSDT',
+    dogecoin: 'BINANCE:DOGEUSDT',
+    litecoin: 'BINANCE:LTCUSDT',
+    cardano: 'BINANCE:ADAUSDT',
+};
+const ICONS = {
+    bitcoin: {icon:'fab fa-bitcoin', color:'text-yellow-500', bg:'bg-yellow-500'},
+    ethereum: {icon:'fab fa-ethereum', color:'text-blue-400', bg:'bg-blue-500'},
+    tether: {icon:'fas fa-dollar-sign', color:'text-green-400', bg:'bg-green-500'},
+    solana: {icon:'fas fa-circle', color:'text-purple-400', bg:'bg-purple-500'},
+    ripple: {icon:'fas fa-times-circle', color:'text-blue-300', bg:'bg-blue-400'},
+    dogecoin: {icon:'fas fa-dog', color:'text-yellow-300', bg:'bg-yellow-400'},
+    litecoin: {icon:'fab fa-btc', color:'text-gray-300', bg:'bg-gray-400'},
+    cardano: {icon:'fas fa-circle', color:'text-blue-300', bg:'bg-blue-600'},
+};
+
+let prices = {};
+
+async function loadMarkets() {
+    try {
+        const r = await fetch('/api/crypto-prices');
+        const d = await r.json();
+        prices = d;
+
+        const sel = document.getElementById('market-sel').value;
+        if (d[sel]) {
+            document.getElementById('market-price').textContent = '$' + d[sel].price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
+            const c = d[sel].change;
+            document.getElementById('market-change').innerHTML = `<span class="${c>=0?'text-green-400':'text-red-400'}">${c>=0?'↑ +':'↓ '}${c.toFixed(2)}%</span>`;
+        }
+
+        const assets = [
+            {id:'bitcoin',name:'Bitcoin',sym:'BTC'},
+            {id:'ethereum',name:'Ethereum',sym:'ETH'},
+            {id:'solana',name:'Solana',sym:'SOL'},
+            {id:'ripple',name:'XRP',sym:'XRP'},
+            {id:'dogecoin',name:'Dogecoin',sym:'DOGE'},
+            {id:'litecoin',name:'Litecoin',sym:'LTC'},
+            {id:'cardano',name:'Cardano',sym:'ADA'},
+        ];
+
+        const list = document.getElementById('mkt-list');
+        list.innerHTML = assets.map(a => {
+            const p = d[a.id] ? d[a.id].price : 0;
+            const c = d[a.id] ? d[a.id].change : 0;
+            const ic = ICONS[a.id] || {icon:'fas fa-circle',color:'text-gray-400',bg:'bg-gray-500'};
+            return `<div class="bg-dark-card rounded-2xl border border-dark-border flex items-center justify-between p-4 hover:border-primary-500 transition cursor-pointer" onclick="setMarket('${a.id}')">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 ${ic.bg} bg-opacity-20 rounded-full flex items-center justify-center"><i class="${ic.icon} ${ic.color}"></i></div>
+                    <div><p class="font-semibold text-white">${a.name}</p><p class="text-xs text-gray-400">${a.sym}</p></div>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-white">$${p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</p>
+                    <p class="text-xs ${c>=0?'text-green-400':'text-red-400'}">${c>=0?'+':''}${c.toFixed(2)}%</p>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) {}
+}
+
+function setMarket(id) {
+    document.getElementById('market-sel').value = id;
+    updateMarket();
+}
+
+function updateMarket() {
+    const sel = document.getElementById('market-sel').value;
+    if (prices[sel]) {
+        document.getElementById('market-price').textContent = '$' + prices[sel].price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
+        const c = prices[sel].change;
+        document.getElementById('market-change').innerHTML = `<span class="${c>=0?'text-green-400':'text-red-400'}">${c>=0?'↑ +':'↓ '}${c.toFixed(2)}%</span>`;
+    }
+    const sym = CHART_SYMBOLS[sel] || 'BINANCE:BTCUSDT';
+    const ic = ICONS[sel] || {icon:'fas fa-circle',color:'text-yellow-500',bg:'bg-yellow-500'};
+    document.getElementById('market-icon-i').className = ic.icon + ' ' + ic.color + ' text-xl';
+    document.getElementById('market-iframe').src = `https://s.tradingview.com/widgetembed/?frameElementId=mkt&symbol=${encodeURIComponent(sym)}&interval=60&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=0&saveimage=0&toolbarbg=1a1d27&theme=dark&style=1&timezone=Etc%2FUTC&locale=en`;
+}
+
+loadMarkets();
+setInterval(loadMarkets, 30000);
+</script>
+{% endblock %}

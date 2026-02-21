@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Admin — Copy Trades{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <a href="{{ url_for('admin_dashboard') }}" class="text-primary-400 text-sm hover:text-primary-300"><i class="fas fa-arrow-left mr-1"></i> Dashboard</a>
+            <h1 class="text-2xl font-bold text-white mt-1">Copy Trades</h1>
+        </div>
+        <span class="bg-primary-600 bg-opacity-20 border border-primary-600 border-opacity-30 text-primary-400 px-4 py-2 rounded-xl text-sm">{{ trades|length }} Total</span>
+    </div>
+    <div class="space-y-3">
+        {% for t in trades %}
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+            <div class="flex items-start justify-between flex-wrap gap-3">
+                <div>
+                    <div class="flex items-center space-x-2 mb-1">
+                        <span class="text-white font-bold">{{ t['trader_name'] }}</span>
+                        <span class="text-xs px-2 py-1 rounded-full {% if t['status']=='Active' %}bg-green-900 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %}">{{ t['status'] }}</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">{{ t['name'] }} ({{ t['email'] }})</p>
+                    <p class="text-xs text-gray-500">Amount: ${{ "%.2f"|format(t['amount']) }} • Profit: ${{ "%.2f"|format(t['total_profit']) }}</p>
+                    <p class="text-xs text-gray-500">{{ t['created_at'][:16] }}</p>
+                </div>
+                {% if t['status'] == 'Active' %}
+                <form method="POST" action="{{ url_for('admin_update_copy_trade', trade_id=t['id']) }}" class="flex flex-wrap items-center gap-2">
+                    <input type="number" name="total_profit" step="0.01" placeholder="Profit ($)" value="{{ t['total_profit'] }}"
+                        class="w-28 bg-dark-hover border border-dark-border text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary-500">
+                    <select name="status" class="bg-dark-hover border border-dark-border text-white rounded-xl px-3 py-2 text-sm focus:outline-none">
+                        <option value="Active">Active</option>
+                        <option value="Stopped">Stop & Return</option>
+                    </select>
+                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white text-sm px-4 py-2 rounded-xl font-semibold transition">Update</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-8 text-center text-gray-500">No copy trades yet.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

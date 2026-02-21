@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Klevaedge - Professional Crypto Trading{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='img/favicon-192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/favicon-192.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8' },
+                        dark: { bg:'#0f1117', card:'#1a1d27', hover:'#22263a', border:'#2a2f45' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body{background-color:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;}
+        .sidebar{width:280px;transition:transform 0.3s ease;}
+        .sidebar-overlay{display:none;}
+        .sidebar-overlay.active{display:block;}
+        .nav-item{transition:all 0.2s;border-radius:12px;}
+        .nav-item.active{background:#2563eb;color:white;}
+        .nav-item:not(.active):hover{background:#22263a;}
+        .stat-card{transition:all 0.3s ease;}
+        .stat-card:hover{transform:translateY(-2px);}
+        .glow{box-shadow:0 0 20px rgba(59,130,246,0.3);}
+        .chat-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,0.5);z-index:100;transition:all 0.2s;}
+        .chat-btn:hover{transform:scale(1.1);}
+        .progress-bar{height:4px;background:#22263a;border-radius:2px;overflow:hidden;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,#2563eb,#60a5fa);border-radius:2px;}
+        ::-webkit-scrollbar{width:4px;}
+        ::-webkit-scrollbar-track{background:#0f1117;}
+        ::-webkit-scrollbar-thumb{background:#2a2f45;border-radius:2px;}
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="text-gray-100 min-h-screen" data-is-admin="{{ '1' if session.is_admin else '0' }}">
+
+    <!-- ===== LOGGED-IN NAV (sidebar) ===== -->
+    {% if session.user_id or session.is_admin %}
+    <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 bg-black bg-opacity-60 z-40" onclick="closeSidebar()"></div>
+    <aside id="sidebar" class="sidebar fixed left-0 top-0 h-full bg-dark-card z-50 flex flex-col transform -translate-x-full shadow-2xl border-r border-dark-border">
+        <div class="flex items-center justify-between p-5 border-b border-dark-border">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Klevaedge" class="h-9 w-auto object-contain" style="filter: drop-shadow(0 0 0px transparent);">
+            </div>
+            <button onclick="closeSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-dark-hover">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+            <p class="text-xs text-gray-500 uppercase tracking-wider px-3 py-2">General</p>
+            {% if session.user_id %}
+            <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-home w-5 text-center"></i><span>Dashboard</span></a>
+            <a href="{{ url_for('assets') }}" class="nav-item {% if request.endpoint == 'assets' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-layer-group w-5 text-center"></i><span>Assets</span></a>
+            <a href="{{ url_for('trade') }}" class="nav-item {% if request.endpoint == 'trade' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-chart-bar w-5 text-center"></i><span>Trade</span></a>
+            <a href="{{ url_for('markets') }}" class="nav-item {% if request.endpoint == 'markets' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-chart-pie w-5 text-center"></i><span>Markets</span></a>
+            <a href="{{ url_for('deposit') }}" class="nav-item {% if request.endpoint == 'deposit' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-credit-card w-5 text-center"></i><span>Deposit</span></a>
+            <a href="{{ url_for('stake') }}" class="nav-item {% if request.endpoint == 'stake' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-coins w-5 text-center"></i><span>Stake</span></a>
+            <a href="{{ url_for('withdraw') }}" class="nav-item {% if request.endpoint == 'withdraw' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-wallet w-5 text-center"></i><span>Withdraw</span></a>
+            <a href="{{ url_for('subscribe') }}" class="nav-item {% if request.endpoint == 'subscribe' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-server w-5 text-center"></i><span>Subscribe</span></a>
+            <a href="{{ url_for('signals') }}" class="nav-item {% if request.endpoint == 'signals' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-broadcast-tower w-5 text-center"></i><span>Signals</span></a>
+            <a href="{{ url_for('copy_trading') }}" class="nav-item {% if request.endpoint == 'copy_trading' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-copy w-5 text-center"></i><span>Copy Experts</span></a>
+            <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %} flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-cog w-5 text-center"></i><span>Settings</span></a>
+            {% else %}
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item active flex items-center space-x-3 px-4 py-3 text-gray-300"><i class="fas fa-users-cog w-5 text-center"></i><span>Admin Dashboard</span></a>
+            {% endif %}
+        </nav>
+        <div class="p-4 border-t border-dark-border">
+            {% if session.user_id %}
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full flex items-center justify-center text-white font-bold text-sm">{{ session.user_name[0].upper() if session.user_name else 'U' }}</div>
+                    <div><p class="font-semibold text-white text-sm">{{ session.user_name }}</p><p class="text-xs text-primary-400">Live account</p></div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="text-gray-500 hover:text-red-400 transition p-2 rounded-lg hover:bg-dark-hover"><i class="fas fa-sign-out-alt"></i></a>
+            </div>
+            {% else %}
+            <a href="{{ url_for('logout') }}" class="flex items-center space-x-2 text-red-400 hover:text-red-300 text-sm"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+            {% endif %}
+        </div>
+    </aside>
+    <header class="fixed top-0 left-0 right-0 h-14 bg-dark-card border-b border-dark-border z-30 flex items-center justify-between px-4">
+        <button onclick="openSidebar()" class="text-gray-300 hover:text-white p-2 rounded-lg hover:bg-dark-hover"><i class="fas fa-bars text-xl"></i></button>
+        <div class="flex items-center space-x-3">
+            <!-- Notification Bell -->
+            <div class="relative" id="notif-wrapper">
+                <button onclick="toggleNotifications()" id="notif-btn"
+                    class="relative text-gray-400 hover:text-white p-2 rounded-lg hover:bg-dark-hover transition">
+                    <i class="fas fa-bell text-lg"></i>
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">0</span>
+                </button>
+            </div>
+
+            <!-- Notification Panel — full-screen overlay on mobile, dropdown on desktop -->
+            <div id="notif-dropdown" class="hidden">
+                <!-- Mobile backdrop -->
+                <div class="fixed inset-0 bg-black bg-opacity-60 z-40 sm:hidden" onclick="toggleNotifications()"></div>
+                <!-- Panel -->
+                <div class="fixed bottom-0 left-0 right-0 z-50 sm:absolute sm:bottom-auto sm:left-auto sm:right-0 sm:top-12 sm:w-80
+                            bg-dark-card border border-dark-border
+                            rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden
+                            max-h-[75vh] sm:max-h-[480px] flex flex-col">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-dark-border flex-shrink-0">
+                        <h3 class="text-white font-semibold text-sm">Notifications</h3>
+                        <div class="flex items-center gap-3">
+                            <button onclick="clearNotifications()" class="text-xs text-gray-400 hover:text-primary-400 transition">Clear all</button>
+                            <button onclick="toggleNotifications()" class="text-gray-400 hover:text-white sm:hidden">
+                                <i class="fas fa-times text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="notif-list" class="overflow-y-auto divide-y divide-dark-border flex-1">
+                        <div class="p-6 text-center text-gray-500 text-sm">
+                            <i class="fas fa-bell-slash text-2xl mb-2 block"></i>
+                            No notifications yet
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full flex items-center justify-center text-white font-bold text-sm cursor-pointer" onclick="openSidebar()">{{ session.user_name[0].upper() if session.user_name else 'U' }}</div>
+        </div>
+    </header>
+    {% endif %}
+    <!-- ===== END LOGGED-IN NAV ===== -->
+
+    <!-- ===== PUBLIC NAV ===== -->
+    {% if not session.user_id and not session.is_admin %}
+    <nav class="bg-dark-card border-b border-dark-border fixed w-full top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+            <a href="{{ url_for('index') }}" class="flex items-center">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Klevaedge" class="h-9 w-auto object-contain" style="filter: drop-shadow(0 0 0px transparent);">
+            </a>
+            <!-- Desktop links -->
+            <div class="hidden sm:flex items-center space-x-2">
+                <a href="{{ url_for('support') }}" class="text-gray-400 hover:text-white px-4 py-2 rounded-lg text-sm">Support</a>
+                <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm">Login</a>
+                <a href="{{ url_for('register') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2 rounded-xl font-semibold transition text-sm glow">Get Started</a>
+            </div>
+            <!-- Mobile burger -->
+            <button onclick="togglePublicMenu()" class="sm:hidden text-gray-300 hover:text-white p-2 rounded-lg hover:bg-dark-hover" id="public-burger">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile dropdown menu -->
+        <div id="public-mobile-menu" class="hidden sm:hidden bg-dark-card border-t border-dark-border px-4 py-3 space-y-2">
+            <a href="{{ url_for('support') }}" class="block text-gray-300 hover:text-white px-4 py-3 rounded-xl hover:bg-dark-hover transition text-sm">
+                <i class="fas fa-headset mr-2 text-gray-500"></i> Support
+            </a>
+            <a href="{{ url_for('login') }}" class="block text-gray-300 hover:text-white px-4 py-3 rounded-xl hover:bg-dark-hover transition text-sm">
+                <i class="fas fa-sign-in-alt mr-2 text-gray-500"></i> Login
+            </a>
+            <a href="{{ url_for('register') }}" class="block bg-primary-600 hover:bg-primary-700 text-white px-4 py-3 rounded-xl font-semibold transition text-sm text-center glow">
+                <i class="fas fa-rocket mr-2"></i> Get Started
+            </a>
+        </div>
+    </nav>
+    <script>
+    function togglePublicMenu() {
+        const menu = document.getElementById('public-mobile-menu');
+        const icon = document.querySelector('#public-burger i');
+        menu.classList.toggle('hidden');
+        icon.className = menu.classList.contains('hidden') ? 'fas fa-bars text-xl' : 'fas fa-times text-xl';
+    }
+    </script>
+    {% endif %}
+    <!-- ===== END PUBLIC NAV ===== -->
+
+    <!-- ===== FLASH MESSAGES ===== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="fixed {% if session.user_id or session.is_admin %}top-16{% else %}top-20{% endif %} right-4 z-50 space-y-2">
+        {% for category, message in messages %}
+        <div class="flash-message bg-{{ 'green' if category == 'success' else 'red' if category == 'error' else 'blue' }}-600 bg-opacity-95 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center justify-between max-w-sm">
+            <div class="flex items-center"><i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }} mr-2 text-sm"></i><span class="text-sm">{{ message }}</span></div>
+            <button onclick="this.parentElement.remove()" class="ml-3 opacity-70 hover:opacity-100"><i class="fas fa-times text-xs"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- ===== MAIN CONTENT — ONE BLOCK ONLY ===== -->
+    <main class="{% if session.user_id or session.is_admin %}pt-14{% else %}pt-16{% endif %} min-h-screen">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ===== CHAT BUTTON (users only, not admin) ===== -->
+    {% if session.user_id and not session.is_admin %}
+    <a href="{{ url_for('support') }}" class="chat-btn">
+        <i class="fas fa-comment-dots text-white text-xl"></i>
+    </a>
+    {% endif %}
+
+    <!-- ===== FOOTER (public only) ===== -->
+    {% if not session.user_id and not session.is_admin %}
+    <footer class="bg-dark-card border-t border-dark-border mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-3">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Klevaedge" class="h-8 w-auto object-contain">
+                    </div>
+                    <p class="text-gray-500 text-sm">Your trusted partner in professional cryptocurrency trading</p>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold mb-3 text-gray-300">Quick Links</h4>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('index') }}" class="block text-gray-500 hover:text-primary-400 text-sm">Home</a>
+                        <a href="{{ url_for('login') }}" class="block text-gray-500 hover:text-primary-400 text-sm">Login</a>
+                        <a href="{{ url_for('register') }}" class="block text-gray-500 hover:text-primary-400 text-sm">Register</a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold mb-3 text-gray-300">Support</h4>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('support') }}" class="block text-gray-500 hover:text-primary-400 text-sm">Help Center</a>
+                        <a href="{{ url_for('contact') }}" class="block text-gray-500 hover:text-primary-400 text-sm">Contact Us</a>
+                        <a href="{{ url_for('faq') }}" class="block text-gray-500 hover:text-primary-400 text-sm">FAQ</a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-dark-border mt-8 pt-6 text-center text-gray-600 text-sm"><p>&copy; 2024 Klevaedge. All rights reserved.</p></div>
+        </div>
+    </footer>
+    {% endif %}
+
+<script>
+function openSidebar(){document.getElementById('sidebar').classList.remove('-translate-x-full');document.getElementById('sidebar-overlay').classList.add('active');}
+function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sidebar-overlay').classList.remove('active');}
+setTimeout(function(){document.querySelectorAll('.flash-message').forEach(function(el){el.style.transition='opacity 0.5s';el.style.opacity='0';setTimeout(function(){el.remove();},500);});},5000);
+</script>
+{% block extra_js %}{% endblock %}
+<script>
+// ===== NOTIFICATIONS =====
+const IS_ADMIN = document.body.dataset.isAdmin === '1';
+const API_URL  = IS_ADMIN ? '/api/admin/notifications' : '/api/notifications';
+const STORE_KEY = IS_ADMIN ? 'ke_admin_seen' : 'ke_user_seen';
+
+// seenIds stores string versions of IDs that have been read
+let seenIds = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]'));
+
+const colorMap = {
+    blue:   'bg-blue-900 bg-opacity-60 text-blue-400',
+    green:  'bg-green-900 bg-opacity-60 text-green-400',
+    purple: 'bg-purple-900 bg-opacity-60 text-purple-400',
+    gray:   'bg-gray-700 text-gray-400',
+    yellow: 'bg-yellow-900 bg-opacity-60 text-yellow-400',
+    indigo: 'bg-indigo-900 bg-opacity-60 text-indigo-400',
+    cyan:   'bg-cyan-900 bg-opacity-60 text-cyan-400',
+    orange: 'bg-orange-900 bg-opacity-60 text-orange-400',
+    red:    'bg-red-900 bg-opacity-60 text-red-400',
+};
+
+function toggleNotifications() {
+    const dd = document.getElementById('notif-dropdown');
+    const isNowOpen = dd.classList.toggle('hidden') === false;
+    if (isNowOpen) loadNotifications();
+}
+
+// Close on outside click
+document.addEventListener('click', function(e) {
+    const w = document.getElementById('notif-wrapper');
+    if (w && !w.contains(e.target)) {
+        document.getElementById('notif-dropdown').classList.add('hidden');
+    }
+});
+
+async function loadNotifications() {
+    const list  = document.getElementById('notif-list');
+    const badge = document.getElementById('notif-badge');
+    list.innerHTML = '<div class="p-4 text-center text-gray-500 text-xs animate-pulse">Loading...</div>';
+
+    try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const notifs = await res.json();
+
+        if (!notifs || notifs.length === 0) {
+            list.innerHTML = '<div class="p-6 text-center text-gray-500 text-sm"><i class="fas fa-bell-slash text-2xl mb-2 block"></i><p>No notifications</p></div>';
+            badge.classList.add('hidden');
+            return;
+        }
+
+        // Render every notification — messages always visible
+        list.innerHTML = notifs.map(n => {
+            const id       = String(n.id);
+            const isNew    = !seenIds.has(id);
+            const color    = colorMap[n.color] || colorMap.blue;
+            const icon     = n.icon || 'fa-bell';
+            const title    = n.type || 'Activity';
+            const desc     = n.description || title;
+            const time     = (n.created_at || '').slice(0, 16).replace('T', ' ');
+            return `<div class="flex items-start gap-3 px-4 py-3 ${isNew ? 'bg-white bg-opacity-[0.04]' : ''} hover:bg-dark-hover transition">
+                <div class="w-8 h-8 rounded-full ${color} flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i class="fas ${icon} text-xs"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-white text-xs font-bold leading-tight">${title}</p>
+                    <p class="text-gray-300 text-xs mt-1 leading-relaxed break-words">${desc}</p>
+                    <p class="text-gray-600 text-xs mt-1">${time}</p>
+                </div>
+                ${isNew ? '<div class="w-2 h-2 rounded-full bg-primary-400 flex-shrink-0 mt-1.5"></div>' : ''}
+            </div>`;
+        }).join('');
+
+        // Badge: count unseen
+        const unseenCount = notifs.filter(n => !seenIds.has(String(n.id))).length;
+        if (unseenCount > 0) {
+            badge.textContent = unseenCount > 9 ? '9+' : unseenCount;
+            badge.classList.remove('hidden');
+            // Mark as seen 2s after panel opens (user has time to read)
+            setTimeout(() => {
+                notifs.forEach(n => seenIds.add(String(n.id)));
+                localStorage.setItem(STORE_KEY, JSON.stringify([...seenIds]));
+                badge.classList.add('hidden');
+            }, 2000);
+        } else {
+            badge.classList.add('hidden');
+        }
+
+    } catch(e) {
+        console.error('Notif load error:', e);
+        list.innerHTML = '<div class="p-4 text-center text-red-400 text-xs">Failed to load notifications</div>';
+    }
+}
+
+function clearNotifications() {
+    // Clear seen memory so badge can reappear if new items arrive
+    seenIds = new Set();
+    localStorage.removeItem(STORE_KEY);
+    document.getElementById('notif-list').innerHTML =
+        '<div class="p-6 text-center text-gray-500 text-sm"><i class="fas fa-bell-slash text-2xl mb-2 block"></i><p>Notifications cleared</p></div>';
+    document.getElementById('notif-badge').classList.add('hidden');
+    document.getElementById('notif-dropdown').classList.add('hidden');
+}
+
+// Poll badge every 30s without opening dropdown
+async function pollBadge() {
+    try {
+        const res = await fetch(API_URL);
+        if (!res.ok) return;
+        const notifs = await res.json();
+        if (!notifs || !notifs.length) return;
+        const badge = document.getElementById('notif-badge');
+        if (!badge) return;
+        const count = notifs.filter(n => !seenIds.has(String(n.id))).length;
+        if (count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    } catch(e) {}
+}
+
+if (document.getElementById('notif-btn')) {
+    pollBadge();
+    setInterval(pollBadge, 30000);
+}
+</script>
+</body>
+</html>

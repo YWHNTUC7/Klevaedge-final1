@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <!-- Balance Card -->
+    <div class="bg-dark-card rounded-2xl p-5 border border-dark-border">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <p class="text-gray-400 text-sm">Total Balance</p>
+                <h2 class="text-3xl font-bold text-white">${{ "%.2f"|format(user['balance']) }}</h2>
+            </div>
+            <span class="bg-green-900 bg-opacity-60 text-green-400 text-sm font-semibold px-4 py-2 rounded-xl border border-green-700">Live account</span>
+        </div>
+        <div class="mt-4">
+            <div class="flex items-center justify-between text-sm mb-2">
+                <span class="text-gray-400">Trading progress</span>
+                <span class="text-gray-300">{% if user['total_deposit'] > 0 %}{{ "%.0f"|format((user['profit']/user['total_deposit']*100) if user['total_deposit'] > 0 else 0) }}%{% else %}0%{% endif %}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {% if user['total_deposit'] > 0 %}{{ [[(user['profit']/user['total_deposit']*100)|int, 100]|min, 0]|max }}%{% else %}0%{% endif %}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Assets -->
+    <div class="bg-dark-card rounded-2xl p-5 border border-dark-border">
+        <h3 class="text-lg font-bold text-white mb-4">Top Assets</h3>
+        <div class="space-y-4" id="top-assets">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fab fa-bitcoin text-yellow-500 text-lg"></i>
+                    </div>
+                    <div><p class="font-semibold text-white">Bitcoin</p><p class="text-xs text-gray-400">BTC</p></div>
+                </div>
+                <span class="text-white font-semibold" id="dash-btc-price">0.00</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fab fa-ethereum text-blue-400 text-lg"></i>
+                    </div>
+                    <div><p class="font-semibold text-white">Ethereum</p><p class="text-xs text-gray-400">ETH</p></div>
+                </div>
+                <span class="text-white font-semibold" id="dash-eth-price">0.00</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-green-400 text-lg"></i>
+                    </div>
+                    <div><p class="font-semibold text-white">United States Dollars</p><p class="text-xs text-gray-400">USD</p></div>
+                </div>
+                <span class="text-white font-semibold">${{ "%.2f"|format(user['balance']) }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gray-500 bg-opacity-20 rounded-full flex items-center justify-center">
+                        <i class="fab fa-apple text-gray-300 text-lg"></i>
+                    </div>
+                    <div><p class="font-semibold text-white">Apple</p><p class="text-xs text-gray-400">NASDAQ:AAPL</p></div>
+                </div>
+                <span class="text-white font-semibold" id="dash-aapl-price">0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Summary -->
+    <div class="bg-dark-card rounded-2xl p-5 border border-dark-border">
+        <h3 class="text-lg font-bold text-white mb-4">Account summary</h3>
+        <div class="space-y-5">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-dark-hover rounded-xl flex items-center justify-center">
+                    <i class="fas fa-wallet text-gray-400"></i>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Total profits</p>
+                    <p class="text-xl font-bold text-white">${{ "%.2f"|format(user['profit']) }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-dark-hover rounded-xl flex items-center justify-center">
+                    <i class="fas fa-credit-card text-gray-400"></i>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Total deposits</p>
+                    <p class="text-xl font-bold text-white">${{ "%.2f"|format(user['total_deposit']) }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-dark-hover rounded-xl flex items-center justify-center">
+                    <i class="fas fa-credit-card text-gray-400"></i>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Total withdrawals</p>
+                    <p class="text-xl font-bold text-white">${{ "%.2f"|format(user['total_withdrawal']) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-3 gap-3">
+        <a href="{{ url_for('deposit') }}" class="bg-dark-card rounded-2xl p-4 border border-dark-border text-center hover:border-primary-500 transition stat-card">
+            <div class="w-10 h-10 bg-green-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-plus text-green-400"></i>
+            </div>
+            <p class="text-xs text-gray-400">Deposit</p>
+        </a>
+        <a href="{{ url_for('withdraw') }}" class="bg-dark-card rounded-2xl p-4 border border-dark-border text-center hover:border-primary-500 transition stat-card">
+            <div class="w-10 h-10 bg-orange-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-minus text-orange-400"></i>
+            </div>
+            <p class="text-xs text-gray-400">Withdraw</p>
+        </a>
+        <a href="{{ url_for('trade') }}" class="bg-dark-card rounded-2xl p-4 border border-dark-border text-center hover:border-primary-500 transition stat-card">
+            <div class="w-10 h-10 bg-primary-500 bg-opacity-20 rounded-xl flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-chart-bar text-primary-400"></i>
+            </div>
+            <p class="text-xs text-gray-400">Trade</p>
+        </a>
+    </div>
+
+    <!-- Open/Closed Trades -->
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <div class="flex border-b border-dark-border">
+            <button id="open-tab" onclick="showTab('open')" class="flex-1 py-4 text-sm font-semibold text-white border-b-2 border-primary-500">Open Trades</button>
+            <button id="closed-tab" onclick="showTab('closed')" class="flex-1 py-4 text-sm font-semibold text-gray-400">Closed Trades</button>
+        </div>
+        <div id="open-trades" class="p-5">
+            {% if copy_trades and copy_trades|selectattr('status', 'equalto', 'Active')|list %}
+                {% for trade in copy_trades if trade['status'] == 'Active' %}
+                <div class="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
+                    <div>
+                        <p class="font-semibold text-white text-sm">{{ trade['trader_name'] }}</p>
+                        <p class="text-xs text-gray-400">Copy Trade • Active</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-green-400 font-semibold text-sm">+${{ "%.2f"|format(trade['total_profit']) }}</p>
+                        <p class="text-xs text-gray-400">${{ "%.2f"|format(trade['amount']) }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="text-gray-500 text-sm text-center py-4">No open trades</p>
+            {% endif %}
+        </div>
+        <div id="closed-trades" class="p-5 hidden">
+            {% if transactions %}
+                {% for tx in transactions %}
+                <div class="flex items-center justify-between py-3 border-b border-dark-border last:border-0">
+                    <div>
+                        <p class="font-semibold text-white text-sm">{{ tx['type'] }}</p>
+                        <p class="text-xs text-gray-400">{{ tx['created_at'][:10] }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="{% if tx['type'] == 'Deposit' %}text-green-400{% else %}text-red-400{% endif %} font-semibold text-sm">${{ "%.2f"|format(tx['amount']) }}</p>
+                        <p class="text-xs text-gray-400">{{ tx['status'] }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <p class="text-gray-500 text-sm text-center py-4">No transaction history</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+function showTab(tab) {
+    document.getElementById('open-trades').classList.toggle('hidden', tab !== 'open');
+    document.getElementById('closed-trades').classList.toggle('hidden', tab !== 'closed');
+    document.getElementById('open-tab').className = 'flex-1 py-4 text-sm font-semibold ' + (tab==='open' ? 'text-white border-b-2 border-primary-500' : 'text-gray-400');
+    document.getElementById('closed-tab').className = 'flex-1 py-4 text-sm font-semibold ' + (tab==='closed' ? 'text-white border-b-2 border-primary-500' : 'text-gray-400');
+}
+async function loadPrices() {
+    try {
+        const r = await fetch('/api/crypto-prices');
+        const d = await r.json();
+        if (d.bitcoin) document.getElementById('dash-btc-price').textContent = '$' + d.bitcoin.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+        if (d.ethereum) document.getElementById('dash-eth-price').textContent = '$' + d.ethereum.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    } catch(e) {}
+}
+loadPrices();
+setInterval(loadPrices, 30000);
+</script>
+{% endblock %}

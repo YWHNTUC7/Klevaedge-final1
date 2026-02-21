@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Trade - Klevaedge{% endblock %}
+{% block extra_css %}
+<style>
+.trade-tab-active{background:#1a1d27;color:white;border:1px solid #2563eb;border-radius:10px;}
+.trade-tab{color:#9ca3af;border-radius:10px;}
+.chart-container{height:240px;}
+@media(min-width:640px){.chart-container{height:360px;}}
+@media(min-width:1024px){.chart-container{height:500px;}}
+@media(min-width:1280px){.chart-container{height:580px;}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- Chart -->
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-dark-border flex-wrap gap-2">
+            <div class="flex items-center space-x-3">
+                <select id="market-select" onchange="syncSelects('chart')" class="bg-dark-hover text-white rounded-xl px-3 py-2 text-sm border border-dark-border focus:outline-none focus:border-primary-500">
+                    <option value="BTCUSD">₿ BTC</option>
+                    <option value="ETHUSD">Ξ ETH</option>
+                    <option value="SOLUSD">◎ SOL</option>
+                    <option value="XRPUSD">✕ XRP</option>
+                    <option value="LTCUSD">Ł LTC</option>
+                    <option value="DOGEUD">Ð DOGE</option>
+                    <option value="AAPL">🍎 AAPL</option>
+                    <option value="TSLA">⚡ TSLA</option>
+                    <option value="NVDA">🟢 NVDA</option>
+                </select>
+                <div>
+                    <p class="text-gray-400 text-xs">Current Price</p>
+                    <p class="font-bold text-sm" id="current-price">Loading...</p>
+                    <p class="text-xs" id="price-change"></p>
+                </div>
+            </div>
+        </div>
+        <div id="tradingview-widget" class="chart-container" style="background:#131722;">
+            <iframe id="tv-frame" src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=BINANCE%3ABTCUSDT&interval=60&hidesidetoolbar=0&hidetoptoolbar=0&symboledit=0&saveimage=0&toolbarbg=1a1d27&studies=[]&theme=dark&style=1&timezone=Etc%2FUTC&withdateranges=1&locale=en"
+                style="width:100%;height:100%;border:0;" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Trade Form -->
+    <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-4">
+        <div class="flex bg-dark-hover rounded-xl p-1">
+            <button id="tab-buy" onclick="setTradeTab('buy')" class="flex-1 py-2 text-sm font-semibold rounded-xl trade-tab-active">Buy</button>
+            <button id="tab-sell" onclick="setTradeTab('sell')" class="flex-1 py-2 text-sm font-semibold trade-tab">Sell</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('trade') }}">
+            <input type="hidden" name="trade_type" id="trade_type_input" value="Buy">
+            <input type="hidden" name="symbol" id="symbol_input" value="BTC">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-gray-400 text-xs mb-1 block">Asset</label>
+                    <select id="asset-select" onchange="syncSelects('asset')"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                        <option value="BTC">Bitcoin (BTC)</option>
+                        <option value="ETH">Ethereum (ETH)</option>
+                        <option value="SOL">Solana (SOL)</option>
+                        <option value="XRP">XRP</option>
+                        <option value="LTC">Litecoin (LTC)</option>
+                        <option value="DOGE">Dogecoin (DOGE)</option>
+                        <option value="AAPL">Apple (AAPL)</option>
+                        <option value="TSLA">Tesla (TSLA)</option>
+                        <option value="NVDA">NVIDIA (NVDA)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1 block">Amount (USD)</label>
+                    <input type="number" name="amount" min="10" step="0.01" placeholder="Enter amount" required
+                        class="w-full bg-dark-bg border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                    <p class="text-xs text-gray-500 mt-1">Balance: <span class="text-white font-semibold">${{ "%.2f"|format(user['balance']) }}</span></p>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Stop Loss ($)</label>
+                        <input type="number" name="stop_loss" step="0.01" placeholder="Optional"
+                            class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                    </div>
+                    <div>
+                        <label class="text-gray-400 text-xs mb-1 block">Take Profit ($)</label>
+                        <input type="number" name="take_profit" step="0.01" placeholder="Optional"
+                            class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-3 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1 block">Duration</label>
+                    <select name="duration" class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                        <option value="2m">2 minutes</option>
+                        <option value="5m">5 minutes</option>
+                        <option value="15m">15 minutes</option>
+                        <option value="30m">30 minutes</option>
+                        <option value="1h" selected>1 hour</option>
+                        <option value="4h">4 hours</option>
+                        <option value="1d">1 day</option>
+                    </select>
+                </div>
+                <button type="submit" id="trade-btn" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-sm transition glow">
+                    <i class="fas fa-arrow-up mr-2"></i> Place Buy Order
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Open Trades -->
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <div class="flex border-b border-dark-border">
+            <button onclick="showTab('open')" id="btn-open" class="flex-1 py-4 text-sm font-semibold text-white border-b-2 border-primary-500">Open Trades ({{ open_trades|length }})</button>
+            <button onclick="showTab('closed')" id="btn-closed" class="flex-1 py-4 text-sm font-semibold text-gray-400">Closed Trades</button>
+        </div>
+
+        <div id="tab-open">
+            {% if open_trades %}
+                {% for t in open_trades %}
+                <div class="flex items-center justify-between p-4 border-b border-dark-border last:border-0">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-lg {% if t['trade_type']=='Buy' %}bg-green-900 bg-opacity-60 text-green-400{% else %}bg-red-900 bg-opacity-60 text-red-400{% endif %}">{{ t['trade_type'] }}</span>
+                            <span class="text-white font-semibold text-sm">{{ t['symbol'] }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">${{ "%.2f"|format(t['amount']) }} • {{ t['created_at'][:16] }}</p>
+                    </div>
+                    <form method="POST" action="{{ url_for('close_trade', trade_id=t['id']) }}">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-xl font-semibold transition">Close</button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="p-8 text-center text-gray-500">
+                <i class="fas fa-chart-bar text-3xl mb-2 block"></i>
+                <p class="text-sm">No open trades</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="tab-closed" class="hidden">
+            {% if closed_trades %}
+                {% for t in closed_trades %}
+                <div class="flex items-center justify-between p-4 border-b border-dark-border last:border-0">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-lg bg-gray-800 text-gray-400">{{ t['trade_type'] }}</span>
+                            <span class="text-white font-semibold text-sm">{{ t['symbol'] }}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">${{ "%.2f"|format(t['amount']) }} • {{ t['created_at'][:10] }}</p>
+                    </div>
+                    <span class="font-bold text-sm {% if t['profit_loss'] >= 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                        {{ "+$%.2f"|format(t['profit_loss']) if t['profit_loss'] >= 0 else "-$%.2f"|format(t['profit_loss']|abs) }}
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="p-8 text-center text-gray-500">
+                <i class="fas fa-history text-3xl mb-2 block"></i>
+                <p class="text-sm">No closed trades</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+const CHART_MAP = {
+    BTC: 'BINANCE:BTCUSDT',
+    ETH: 'BINANCE:ETHUSDT',
+    SOL: 'BINANCE:SOLUSDT',
+    XRP: 'BINANCE:XRPUSDT',
+    LTC: 'BINANCE:LTCUSDT',
+    DOGE: 'BINANCE:DOGEUSDT',
+    AAPL: 'NASDAQ:AAPL',
+    TSLA: 'NASDAQ:TSLA',
+    NVDA: 'NASDAQ:NVDA',
+};
+
+// Map asset symbol -> coingecko key
+const PRICE_MAP = {
+    BTC: 'bitcoin',
+    ETH: 'ethereum',
+    SOL: 'solana',
+    XRP: 'ripple',
+    LTC: 'litecoin',
+    DOGE: 'dogecoin',
+    AAPL: null,
+    TSLA: null,
+    NVDA: null,
+};
+
+let currentSymbol = 'BTC';
+
+function syncSelects(src) {
+    // Keep chart select and form asset select in sync
+    const assetSel = document.getElementById('asset-select');
+    const chartSel = document.getElementById('market-select');
+    if (src === 'asset') {
+        currentSymbol = assetSel.value;
+        // Map asset to chart select option
+        chartSel.value = currentSymbol + 'USD';
+        if (!chartSel.value) chartSel.value = 'BTCUSD';
+    } else {
+        // chart select changed
+        currentSymbol = chartSel.value.replace('USD','');
+        // find matching asset option
+        const opt = assetSel.querySelector(`option[value="${currentSymbol}"]`);
+        if (opt) assetSel.value = currentSymbol;
+    }
+    document.getElementById('symbol_input').value = currentSymbol;
+    updateChart();
+    updatePrice();
+}
+
+function updateChart() {
+    const sym = CHART_MAP[currentSymbol] || 'BINANCE:BTCUSDT';
+    document.getElementById('tv-frame').src =
+        `https://s.tradingview.com/widgetembed/?frameElementId=tradingview&symbol=${encodeURIComponent(sym)}&interval=60&hidesidetoolbar=0&hidetoptoolbar=0&theme=dark&style=1&locale=en`;
+}
+
+async function updatePrice() {
+    const cgKey = PRICE_MAP[currentSymbol];
+    const el = document.getElementById('current-price');
+    if (!cgKey) {
+        el.textContent = 'N/A';
+        el.className = 'text-gray-400 font-bold text-sm';
+        return;
+    }
+    try {
+        const r = await fetch('/api/crypto-prices');
+        const d = await r.json();
+        const asset = d[cgKey];
+        if (asset) {
+            el.textContent = '$' + asset.price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            el.className = asset.change >= 0 ? 'text-green-400 font-bold text-sm' : 'text-red-400 font-bold text-sm';
+            document.getElementById('price-change').textContent =
+                (asset.change >= 0 ? '+' : '') + asset.change.toFixed(2) + '%';
+            document.getElementById('price-change').className =
+                'text-xs ' + (asset.change >= 0 ? 'text-green-400' : 'text-red-400');
+        }
+    } catch(e) { el.textContent = 'N/A'; }
+}
+
+function setTradeTab(tab) {
+    const isBuy = tab === 'buy';
+    document.getElementById('tab-buy').className = 'flex-1 py-2 text-sm font-semibold rounded-xl ' + (isBuy ? 'trade-tab-active' : 'trade-tab');
+    document.getElementById('tab-sell').className = 'flex-1 py-2 text-sm font-semibold rounded-xl ' + (!isBuy ? 'trade-tab-active' : 'trade-tab');
+    document.getElementById('trade_type_input').value = isBuy ? 'Buy' : 'Sell';
+    const btn = document.getElementById('trade-btn');
+    btn.className = 'w-full ' + (isBuy ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700') + ' text-white py-4 rounded-xl font-bold text-sm transition glow';
+    btn.innerHTML = `<i class="fas fa-arrow-${isBuy ? 'up' : 'down'} mr-2"></i> Place ${isBuy ? 'Buy' : 'Sell'} Order`;
+}
+
+function showTab(t) {
+    document.getElementById('tab-open').classList.toggle('hidden', t !== 'open');
+    document.getElementById('tab-closed').classList.toggle('hidden', t !== 'closed');
+    document.getElementById('btn-open').className = 'flex-1 py-4 text-sm font-semibold ' + (t === 'open' ? 'text-white border-b-2 border-primary-500' : 'text-gray-400');
+    document.getElementById('btn-closed').className = 'flex-1 py-4 text-sm font-semibold ' + (t === 'closed' ? 'text-white border-b-2 border-primary-500' : 'text-gray-400');
+}
+
+// Init
+updatePrice();
+setInterval(updatePrice, 30000);
+</script>
+{% endblock %}

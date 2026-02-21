@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Stake - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <h1 class="text-2xl font-bold text-white">Stake</h1>
+    <p class="text-gray-400 text-sm -mt-3">Earn rewards by staking your crypto</p>
+
+    <h2 class="text-lg font-bold text-white">Pools</h2>
+    <div class="space-y-4">
+        {% set pools = [
+            {'name': 'Shiba Inu', 'sym': 'SHIB', 'icon': '🐕', 'color': 'orange', 'min': '500,000,000', 'max': '1,000,000,000', 'cycle': 'DAILY', 'apy': '12%'},
+            {'name': 'Tether', 'sym': 'USDT', 'icon': '₮', 'color': 'green', 'min': '5,000', 'max': '500,000', 'cycle': 'DAILY', 'apy': '8%'},
+            {'name': 'Dogecoin', 'sym': 'DOGE', 'icon': 'Ð', 'color': 'yellow', 'min': '15,000', 'max': '10,000,000', 'cycle': 'DAILY', 'apy': '15%'},
+            {'name': 'Dai', 'sym': 'DAI', 'icon': '◈', 'color': 'yellow', 'min': '1,000', 'max': '15,000', 'cycle': 'DAILY', 'apy': '7%'},
+            {'name': 'Avalanche', 'sym': 'AVAX', 'icon': '▲', 'color': 'red', 'min': '100', 'max': '1,000', 'cycle': 'DAILY', 'apy': '18%'},
+            {'name': 'XRP', 'sym': 'XRP', 'icon': '✕', 'color': 'blue', 'min': '10,000', 'max': '50,000', 'cycle': 'DAILY', 'apy': '10%'},
+        ] %}
+        {% for pool in pools %}
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-{{ pool.color }}-500 bg-opacity-20 rounded-full flex items-center justify-center text-{{ pool.color }}-400 font-bold text-lg">{{ pool.icon }}</div>
+                <div>
+                    <p class="font-bold text-white">{{ pool.name }}</p>
+                    <p class="text-xs text-gray-400">{{ pool.sym }}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Minimum</p>
+                    <p class="font-bold text-white">{{ pool.min }} {{ pool.sym }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Cycle</p>
+                    <p class="font-bold text-white">{{ pool.cycle }}</p>
+                </div>
+            </div>
+            <div class="bg-dark-hover rounded-xl p-3">
+                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Maximum</p>
+                <p class="font-bold text-white">{{ pool.max }} {{ pool.sym }}</p>
+            </div>
+            <button onclick="openStakeModal('{{ pool.name }}', '{{ pool.sym }}')" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold transition">Stake</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Stakings History -->
+    <h2 class="text-lg font-bold text-white pt-2">Stakings</h2>
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <div class="p-4 border-b border-dark-border">
+            <h3 class="font-semibold text-white">Stakings</h3>
+        </div>
+        <div class="flex justify-between px-4 py-3 border-b border-dark-border">
+            <span class="text-xs text-gray-400 font-semibold">Asset / Date</span>
+            <span class="text-xs text-gray-400 font-semibold">Amount / Earnings</span>
+        </div>
+        {% if stakings %}
+            {% for s in stakings %}
+            <div class="flex items-center justify-between px-4 py-3 border-b border-dark-border last:border-0">
+                <div>
+                    <p class="text-sm text-white font-semibold">{{ s['asset'] }}</p>
+                    <p class="text-xs text-gray-400">{{ s['created_at'][:10] }} • {{ s['daily_rate'] }}%/day</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-white">${{ "%.2f"|format(s['amount']) }}</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-green-400">+${{ "%.2f"|format(s['earnings']) }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full {% if s['status']=='Active' %}bg-green-900 text-green-400{% else %}bg-gray-800 text-gray-400{% endif %}">{{ s['status'] }}</span>
+                    </div>
+                </div>
+                {% if s['status'] == 'Active' %}
+                <form method="POST" action="{{ url_for('unstake', stake_id=s['id']) }}">
+                    <button type="submit" class="ml-3 text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition">Unstake</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="p-8 text-center text-gray-500 text-sm">No staking history</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stake Modal -->
+<div id="stake-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-end justify-center">
+    <div class="bg-dark-card rounded-t-2xl w-full max-w-2xl p-6 space-y-4 border-t border-dark-border">
+        <h3 class="text-lg font-bold text-white">Stake <span id="modal-pool-name"></span></h3>
+        <form method="POST" action="{{ url_for('stake') }}">
+            <input type="hidden" id="modal-asset" name="asset">
+            <input type="hidden" id="modal-rate" name="daily_rate" value="0.5">
+            <div class="space-y-3">
+                <div>
+                    <label class="text-gray-400 text-sm mb-1 block">Amount (<span id="modal-sym"></span>)</label>
+                    <input type="number" name="amount" class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500" placeholder="Enter amount" required>
+                </div>
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold transition">Confirm Stake</button>
+                <button type="button" onclick="document.getElementById('stake-modal').classList.add('hidden')" class="w-full text-gray-400 py-2 text-sm">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function openStakeModal(name, sym) {
+    document.getElementById('modal-pool-name').textContent = name;
+    document.getElementById('modal-sym').textContent = sym;
+    document.getElementById('modal-asset').value = sym;
+    document.getElementById('stake-modal').classList.remove('hidden');
+}
+</script>
+{% endblock %}

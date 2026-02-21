@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Deposit - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+
+    <div>
+        <h1 class="text-2xl font-bold text-white">Deposit Funds</h1>
+        <p class="text-gray-400 text-sm">Send crypto and upload your payment proof</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="bg-{{ 'green' if cat=='success' else 'red' }}-900 bg-opacity-40 border border-{{ 'green' if cat=='success' else 'red' }}-700 text-{{ 'green' if cat=='success' else 'red' }}-300 px-4 py-3 rounded-xl text-sm">
+            <i class="fas fa-{{ 'check-circle' if cat=='success' else 'exclamation-circle' }} mr-2"></i>{{ msg }}
+        </div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('deposit') }}">
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-5">
+
+            <div>
+                <h3 class="font-semibold text-white mb-1">Payment Method</h3>
+                <p class="text-gray-400 text-sm">Select your crypto, send to the address below, then upload your transaction screenshot.</p>
+            </div>
+
+            <!-- Crypto Select -->
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Select Crypto:</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="crypto-grid">
+                    <button type="button" onclick="selectCrypto('bitcoin','BTC','₿')" id="btn-bitcoin"
+                        class="crypto-btn selected flex flex-col items-center py-3 px-2 rounded-xl border border-primary-500 bg-primary-600 bg-opacity-10 text-white transition">
+                        <span class="text-xl mb-1">₿</span>
+                        <span class="text-xs font-semibold">Bitcoin</span>
+                        <span class="text-xs text-gray-400">BTC</span>
+                    </button>
+                    <button type="button" onclick="selectCrypto('ethereum','ETH','Ξ')" id="btn-ethereum"
+                        class="crypto-btn flex flex-col items-center py-3 px-2 rounded-xl border border-dark-border bg-dark-hover text-gray-300 hover:border-primary-500 transition">
+                        <span class="text-xl mb-1">Ξ</span>
+                        <span class="text-xs font-semibold">Ethereum</span>
+                        <span class="text-xs text-gray-400">ETH</span>
+                    </button>
+                    <button type="button" onclick="selectCrypto('usdt','USDT','₮')" id="btn-usdt"
+                        class="crypto-btn flex flex-col items-center py-3 px-2 rounded-xl border border-dark-border bg-dark-hover text-gray-300 hover:border-primary-500 transition">
+                        <span class="text-xl mb-1">₮</span>
+                        <span class="text-xs font-semibold">USDT TRC20</span>
+                        <span class="text-xs text-gray-400">USDT</span>
+                    </button>
+                    <button type="button" onclick="selectCrypto('litecoin','LTC','Ł')" id="btn-litecoin"
+                        class="crypto-btn flex flex-col items-center py-3 px-2 rounded-xl border border-dark-border bg-dark-hover text-gray-300 hover:border-primary-500 transition">
+                        <span class="text-xl mb-1">Ł</span>
+                        <span class="text-xs font-semibold">Litecoin</span>
+                        <span class="text-xs text-gray-400">LTC</span>
+                    </button>
+                </div>
+                <input type="hidden" name="crypto" id="crypto-input" value="bitcoin">
+            </div>
+
+            <!-- Wallet Address -->
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Send to this address:</label>
+                <div class="bg-dark-hover border border-dark-border rounded-xl p-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <p id="wallet-addr" class="text-white text-sm font-mono break-all flex-1">{{ wallets.bitcoin }}</p>
+                        <button type="button" onclick="copyAddr()" id="copy-btn"
+                            class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition">
+                            <i class="fas fa-copy mr-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                <p class="text-yellow-400 text-xs mt-2"><i class="fas fa-exclamation-triangle mr-1"></i>Only send the selected crypto to this address. Sending wrong assets will result in permanent loss.</p>
+            </div>
+
+            <!-- Amount -->
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Amount (USD):</label>
+                <div class="flex bg-dark-hover border border-dark-border rounded-xl overflow-hidden">
+                    <input type="number" name="amount" id="dep-amount" value="100" step="0.01" min="10" required
+                        class="flex-1 bg-transparent text-white px-4 py-3 text-sm focus:outline-none">
+                    <span id="dep-sym" class="bg-dark-border text-gray-300 px-4 flex items-center text-sm font-semibold">BTC</span>
+                </div>
+            </div>
+
+            <!-- Payment Proof Upload -->
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Upload Payment Proof: <span class="text-red-400">*</span></label>
+                <div id="upload-area"
+                    class="border-2 border-dashed border-dark-border rounded-xl p-8 text-center hover:border-primary-500 transition cursor-pointer"
+                    onclick="document.getElementById('proof-file').click()"
+                    ondragover="event.preventDefault(); this.classList.add('border-primary-500')"
+                    ondragleave="this.classList.remove('border-primary-500')"
+                    ondrop="handleDrop(event)">
+                    <div id="upload-placeholder">
+                        <div class="w-14 h-14 bg-dark-hover rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-cloud-upload-alt text-primary-400 text-2xl"></i>
+                        </div>
+                        <p class="text-white text-sm font-semibold">Click to upload or drag & drop</p>
+                        <p class="text-gray-500 text-xs mt-1">PNG, JPG, GIF or PDF — max 10MB</p>
+                    </div>
+                    <div id="upload-preview" class="hidden">
+                        <img id="preview-img" src="" alt="Preview" class="max-h-40 mx-auto rounded-lg mb-2">
+                        <p id="preview-name" class="text-green-400 text-sm font-semibold"></p>
+                        <p class="text-gray-400 text-xs mt-1">Click to change</p>
+                    </div>
+                </div>
+                <input type="file" id="proof-file" name="payment_proof" accept="image/*,.pdf" class="hidden" onchange="previewFile(this)">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-primary-600 hover:bg-primary-700 text-white py-4 rounded-xl font-bold transition glow flex items-center justify-center">
+                <i class="fas fa-paper-plane mr-2"></i> Submit Deposit
+            </button>
+        </div>
+    </form>
+
+    <!-- Deposit History -->
+    <h2 class="text-lg font-bold text-white">Deposit History</h2>
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        {% if deposits %}
+            {% for dep in deposits %}
+            <div class="flex items-center justify-between p-4 border-b border-dark-border last:border-0 flex-wrap gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-dark-hover rounded-full flex items-center justify-center text-lg flex-shrink-0">
+                        {% if dep['crypto'] == 'bitcoin' %}₿
+                        {% elif dep['crypto'] == 'ethereum' %}Ξ
+                        {% elif dep['crypto'] == 'usdt' %}₮
+                        {% elif dep['crypto'] == 'litecoin' %}Ł
+                        {% else %}${% endif %}
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold text-sm">${{ "%.2f"|format(dep['amount']) }}</p>
+                        <p class="text-gray-400 text-xs">{{ dep['crypto']|upper if dep['crypto'] else 'N/A' }} • {{ dep['created_at'][:10] }}</p>
+                        {% if dep['proof_file'] %}
+                        <a href="{{ url_for('uploaded_file', filename=dep['proof_file']) }}" target="_blank"
+                            class="text-xs text-primary-400 hover:text-primary-300">
+                            <i class="fas fa-image mr-1"></i>View proof
+                        </a>
+                        {% else %}
+                        <span class="text-xs text-gray-600">No proof uploaded</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <span class="text-xs px-3 py-1 rounded-full font-semibold
+                    {% if dep['status'] == 'Completed' %}bg-green-900 bg-opacity-60 text-green-400
+                    {% elif dep['status'] == 'Pending' %}bg-yellow-900 bg-opacity-60 text-yellow-400
+                    {% else %}bg-red-900 bg-opacity-60 text-red-400{% endif %}">
+                    {{ dep['status'] }}
+                </span>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="p-8 text-center text-gray-500 text-sm">
+            <i class="fas fa-inbox text-3xl mb-2 block"></i>
+            No deposit history yet
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+const wallets = {{ wallets|tojson }};
+const syms = {bitcoin:'BTC', ethereum:'ETH', usdt:'USDT', litecoin:'LTC'};
+
+function selectCrypto(key, sym, icon) {
+    // Reset all buttons
+    document.querySelectorAll('.crypto-btn').forEach(b => {
+        b.className = 'crypto-btn flex flex-col items-center py-3 px-2 rounded-xl border border-dark-border bg-dark-hover text-gray-300 hover:border-primary-500 transition';
+    });
+    // Highlight selected
+    const btn = document.getElementById('btn-' + key);
+    btn.className = 'crypto-btn selected flex flex-col items-center py-3 px-2 rounded-xl border border-primary-500 bg-primary-600 bg-opacity-10 text-white transition';
+
+    document.getElementById('crypto-input').value = key;
+    document.getElementById('wallet-addr').textContent = wallets[key] || '';
+    document.getElementById('dep-sym').textContent = sym;
+}
+
+function copyAddr() {
+    const addr = document.getElementById('wallet-addr').textContent;
+    navigator.clipboard.writeText(addr).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+        btn.classList.replace('bg-primary-600', 'bg-green-600');
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy mr-1"></i>Copy';
+            btn.classList.replace('bg-green-600', 'bg-primary-600');
+        }, 2000);
+    });
+}
+
+function previewFile(input) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('upload-placeholder').classList.add('hidden');
+            document.getElementById('upload-preview').classList.remove('hidden');
+            if (file.type.startsWith('image/')) {
+                document.getElementById('preview-img').src = e.target.result;
+                document.getElementById('preview-img').classList.remove('hidden');
+            } else {
+                document.getElementById('preview-img').classList.add('hidden');
+            }
+            document.getElementById('preview-name').textContent = '✓ ' + file.name;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-area').classList.remove('border-primary-500');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        const input = document.getElementById('proof-file');
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        input.files = dt.files;
+        previewFile(input);
+    }
+}
+</script>
+{% endblock %}

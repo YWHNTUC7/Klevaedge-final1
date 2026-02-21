@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Support - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-white mb-2">Support Center</h1>
+        <p class="text-gray-400">We're here to help you 24/7</p>
+    </div>
+
+    <!-- Contact Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center hover:border-primary-500 transition">
+            <div class="w-14 h-14 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-envelope text-2xl text-blue-400"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">Email Support</h3>
+            <p class="text-gray-400 text-sm mb-3">Get help via email within 24 hours</p>
+            <a href="mailto:support@klevaedge.com" class="text-primary-400 hover:text-primary-300 text-sm font-semibold break-all">support@klevaedge.com</a>
+        </div>
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center hover:border-green-500 transition">
+            <div class="w-14 h-14 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fab fa-whatsapp text-2xl text-green-400"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">WhatsApp</h3>
+            <p class="text-gray-400 text-sm mb-3">Chat with us on WhatsApp instantly</p>
+            <a href="https://wa.me/1234567890" target="_blank" class="text-green-400 hover:text-green-300 text-sm font-semibold">+1 (234) 567-890</a>
+        </div>
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center hover:border-purple-500 transition">
+            <div class="w-14 h-14 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fab fa-telegram text-2xl text-purple-400"></i>
+            </div>
+            <h3 class="font-bold text-white mb-2">Telegram</h3>
+            <p class="text-gray-400 text-sm mb-3">Join our support group on Telegram</p>
+            <a href="https://t.me/klevaedgesupport" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm font-semibold">@klevaedgesupport</a>
+        </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl p-6 space-y-3">
+        <h2 class="text-xl font-bold text-white mb-4">Common Questions</h2>
+
+        <details class="group border border-dark-border rounded-xl overflow-hidden">
+            <summary class="flex justify-between items-center cursor-pointer p-4 bg-dark-hover hover:bg-opacity-80 transition">
+                <span class="font-semibold text-white">How long do deposits take?</span>
+                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </summary>
+            <div class="p-4 text-gray-300 text-sm leading-relaxed border-t border-dark-border">
+                Deposits are typically credited to your account within 10–30 minutes after receiving the required number of network confirmations. Bitcoin requires 3 confirmations, Ethereum requires 12 confirmations, and other cryptocurrencies may vary.
+            </div>
+        </details>
+
+        <details class="group border border-dark-border rounded-xl overflow-hidden">
+            <summary class="flex justify-between items-center cursor-pointer p-4 bg-dark-hover hover:bg-opacity-80 transition">
+                <span class="font-semibold text-white">How do I withdraw my funds?</span>
+                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </summary>
+            <div class="p-4 text-gray-300 text-sm leading-relaxed border-t border-dark-border">
+                To withdraw funds, go to the Withdraw page, enter the amount, select your cryptocurrency, and provide your wallet address. Withdrawals are processed within 24–48 hours. Make sure your wallet address is correct as transactions cannot be reversed.
+            </div>
+        </details>
+
+        <details class="group border border-dark-border rounded-xl overflow-hidden">
+            <summary class="flex justify-between items-center cursor-pointer p-4 bg-dark-hover hover:bg-opacity-80 transition">
+                <span class="font-semibold text-white">What are the minimum deposit and withdrawal amounts?</span>
+                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </summary>
+            <div class="p-4 text-gray-300 text-sm leading-relaxed border-t border-dark-border">
+                The minimum deposit amount is $10 USD equivalent in any supported cryptocurrency. The minimum withdrawal amount is also $10 USD. There is no maximum limit for deposits or withdrawals.
+            </div>
+        </details>
+
+        <details class="group border border-dark-border rounded-xl overflow-hidden">
+            <summary class="flex justify-between items-center cursor-pointer p-4 bg-dark-hover hover:bg-opacity-80 transition">
+                <span class="font-semibold text-white">Is my account secure?</span>
+                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </summary>
+            <div class="p-4 text-gray-300 text-sm leading-relaxed border-t border-dark-border">
+                Yes, we use bank-level encryption and security measures to protect your account and funds. We recommend using a strong, unique password and never sharing your login credentials with anyone.
+            </div>
+        </details>
+
+        <details class="group border border-dark-border rounded-xl overflow-hidden">
+            <summary class="flex justify-between items-center cursor-pointer p-4 bg-dark-hover hover:bg-opacity-80 transition">
+                <span class="font-semibold text-white">Which cryptocurrencies do you support?</span>
+                <i class="fas fa-chevron-down text-gray-400 group-open:rotate-180 transition-transform duration-200"></i>
+            </summary>
+            <div class="p-4 text-gray-300 text-sm leading-relaxed border-t border-dark-border">
+                We currently support Bitcoin (BTC), Ethereum (ETH), Tether (USDT), Solana (SOL), Litecoin (LTC), and several other assets. We are constantly working to add support for more cryptocurrencies and stocks.
+            </div>
+        </details>
+    </div>
+
+    <div class="text-center">
+        <p class="text-gray-400 mb-4">Still have questions?</p>
+        <a href="{{ url_for('contact') }}" class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-semibold transition inline-flex items-center glow">
+            <i class="fas fa-paper-plane mr-2"></i> Contact Us
+        </a>
+    </div>
+</div>
+{% endblock %}

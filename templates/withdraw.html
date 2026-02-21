@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Withdraw - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Withdraw</h1>
+        <p class="text-gray-400 text-sm">Withdraw from your trading accounts</p>
+    </div>
+    <form method="POST">
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-5">
+            <div>
+                <h3 class="font-semibold text-white mb-1">Submit withdrawal</h3>
+                <p class="text-gray-400 text-sm">To make a withdrawal, select your balance, amount and verify the address you wish for payment to be made into.</p>
+            </div>
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Type:</label>
+                <select name="type" class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                    <option>Crypto</option>
+                    <option>Bank Transfer</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Asset:</label>
+                <select id="withdraw-asset" name="crypto" class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                    <option value="bitcoin">₿ Bitcoin</option>
+                    <option value="ethereum">Ξ Ethereum</option>
+                    <option value="usdt">₮ Tether</option>
+                    <option value="litecoin">Ł Litecoin</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Amount:</label>
+                <div class="flex bg-dark-hover border border-dark-border rounded-xl overflow-hidden">
+                    <input type="number" name="amount" value="1000" step="0.01" min="10" max="{{ user['balance'] }}" required class="flex-1 bg-transparent text-white px-4 py-3 text-sm focus:outline-none">
+                    <span class="bg-dark-border text-gray-300 px-4 flex items-center text-sm font-semibold">BTC</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Current balance: <span class="text-white">${{ "%.2f"|format(user['balance']) }}</span></p>
+            </div>
+            <div>
+                <label class="text-gray-400 text-sm mb-2 block">Address:</label>
+                <input type="text" name="wallet_address" placeholder="Your BTC address" required class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 font-mono">
+            </div>
+            <button type="submit" class="w-full bg-dark-hover border border-dark-border text-white py-4 rounded-xl font-semibold hover:bg-primary-600 hover:border-primary-600 transition">Withdraw</button>
+        </div>
+    </form>
+
+    <!-- Withdrawals History -->
+    <h2 class="text-lg font-bold text-white">Withdrawals</h2>
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <div class="p-4 border-b border-dark-border"><h3 class="font-semibold text-white">Withdrawals</h3></div>
+        <div class="grid grid-cols-2 px-4 py-3 border-b border-dark-border">
+            <span class="text-xs text-gray-400 font-semibold">Ref</span>
+            <span class="text-xs text-gray-400 font-semibold text-right">Type</span>
+        </div>
+        {% if withdrawals %}
+            {% for w in withdrawals %}
+            <div class="grid grid-cols-3 px-4 py-3 border-b border-dark-border last:border-0">
+                <span class="text-sm text-white">#{{ w['id'] }}</span>
+                <span class="text-sm text-gray-400">{{ w['crypto']|upper }}</span>
+                <div class="text-right">
+                    <p class="text-sm text-white">${{ "%.2f"|format(w['amount']) }}</p>
+                    <p class="text-xs text-gray-400">{{ w['status'] }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="p-8 text-center text-gray-500 text-sm">No withdrawal history</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% block title %}Assets - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <h1 class="text-2xl font-bold text-white">Assets</h1>
+
+    <!-- Balance Card -->
+    <div class="bg-dark-card rounded-2xl p-5 border border-dark-border">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+                <p class="text-gray-400 text-sm">Total Balance</p>
+                <h2 class="text-3xl font-bold text-white">${{ "%.2f"|format(user['balance']) }}</h2>
+            </div>
+            <span class="bg-green-900 bg-opacity-60 text-green-400 text-sm font-semibold px-4 py-2 rounded-xl border border-green-700">Live account</span>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-dark-card rounded-2xl p-5 border border-dark-border">
+        <h3 class="font-semibold text-white mb-3">Recent activity</h3>
+        {% if transactions %}
+            {% for tx in transactions[:3] %}
+            <div class="flex items-center justify-between py-2 border-b border-dark-border last:border-0">
+                <div>
+                    <p class="text-sm font-medium text-white">{{ tx['type'] }}</p>
+                    <p class="text-xs text-gray-400">{{ tx['created_at'][:10] }}</p>
+                </div>
+                <span class="{% if tx['type']=='Deposit' %}text-green-400{% else %}text-red-400{% endif %} text-sm font-semibold">${{ "%.2f"|format(tx['amount']) }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+        <p class="text-gray-500 text-sm">No recent activity</p>
+        {% endif %}
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="space-y-3">
+        <div class="flex items-center bg-dark-card border border-dark-border rounded-xl px-4 py-3 space-x-3">
+            <i class="fas fa-search text-gray-500"></i>
+            <input type="text" id="asset-search" oninput="filterAssets()" placeholder="Search assets..." class="bg-transparent text-white text-sm flex-1 focus:outline-none placeholder-gray-500">
+        </div>
+        <div class="flex space-x-2 overflow-x-auto pb-1">
+            <button onclick="filterTab('All')" id="filter-All" class="px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-primary-500 text-white whitespace-nowrap">All</button>
+            <button onclick="filterTab('Fiat')" id="filter-Fiat" class="px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-dark-border text-gray-400 whitespace-nowrap">Fiat</button>
+            <button onclick="filterTab('Crypto')" id="filter-Crypto" class="px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-dark-border text-gray-400 whitespace-nowrap">Crypto</button>
+            <button onclick="filterTab('Stocks')" id="filter-Stocks" class="px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-dark-border text-gray-400 whitespace-nowrap">Stocks</button>
+        </div>
+    </div>
+
+    <!-- Asset List -->
+    <div id="asset-list" class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        <!-- Fiat Header -->
+        <div class="asset-item" data-type="Fiat">
+            <div class="px-4 py-2 bg-dark-hover"><p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Fiat</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Fiat" data-name="united states dollar usd">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fas fa-dollar-sign text-green-400"></i></div>
+                <div><p class="font-semibold text-white">US Dollar</p><p class="text-xs text-gray-400">USD</p></div>
+            </div>
+            <div class="text-right">
+                <p class="font-semibold text-white">${{ "%.2f"|format(user['balance']) }}</p>
+                <p class="text-xs text-gray-400">{{ "%.2f"|format(user['balance']) }} USD</p>
+            </div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Fiat" data-name="euro eur">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-blue-400 font-bold">€</span></div>
+                <div><p class="font-semibold text-white">Euro</p><p class="text-xs text-gray-400">EUR</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">€0.00</p><p class="text-xs text-gray-400">0.00 EUR</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Fiat" data-name="british pound gbp">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-purple-400 font-bold">£</span></div>
+                <div><p class="font-semibold text-white">British Pound</p><p class="text-xs text-gray-400">GBP</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">£0.00</p><p class="text-xs text-gray-400">0.00 GBP</p></div>
+        </div>
+
+        <!-- Crypto Header -->
+        <div class="asset-item" data-type="Crypto">
+            <div class="px-4 py-2 bg-dark-hover"><p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Crypto</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="bitcoin btc">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fab fa-bitcoin text-yellow-500"></i></div>
+                <div><p class="font-semibold text-white">Bitcoin</p><p class="text-xs text-gray-400">BTC</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-btc-price">Loading...</p><p class="text-xs text-gray-400">0.00 BTC</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="ethereum eth">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fab fa-ethereum text-blue-400"></i></div>
+                <div><p class="font-semibold text-white">Ethereum</p><p class="text-xs text-gray-400">ETH</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-eth-price">Loading...</p><p class="text-xs text-gray-400">0.00 ETH</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="tether usdt">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-green-400 font-bold text-sm">₮</span></div>
+                <div><p class="font-semibold text-white">Tether</p><p class="text-xs text-gray-400">USDT</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$1.00</p><p class="text-xs text-gray-400">0.00 USDT</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="solana sol">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-purple-400 font-bold text-sm">◎</span></div>
+                <div><p class="font-semibold text-white">Solana</p><p class="text-xs text-gray-400">SOL</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-sol-price">Loading...</p><p class="text-xs text-gray-400">0.00 SOL</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="xrp ripple">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-400 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-blue-300 font-bold text-sm">✕</span></div>
+                <div><p class="font-semibold text-white">XRP</p><p class="text-xs text-gray-400">XRP</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-xrp-price">Loading...</p><p class="text-xs text-gray-400">0.00 XRP</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="dogecoin doge">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-400 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-yellow-300 font-bold text-sm">Ð</span></div>
+                <div><p class="font-semibold text-white">Dogecoin</p><p class="text-xs text-gray-400">DOGE</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-doge-price">Loading...</p><p class="text-xs text-gray-400">0.00 DOGE</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="cardano ada">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-blue-300 font-bold text-xs">₳</span></div>
+                <div><p class="font-semibold text-white">Cardano</p><p class="text-xs text-gray-400">ADA</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-ada-price">Loading...</p><p class="text-xs text-gray-400">0.00 ADA</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="litecoin ltc">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gray-400 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fab fa-btc text-gray-300"></i></div>
+                <div><p class="font-semibold text-white">Litecoin</p><p class="text-xs text-gray-400">LTC</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white price-tag" id="a-ltc-price">Loading...</p><p class="text-xs text-gray-400">0.00 LTC</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="bnb binance coin">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-600 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-yellow-500 font-bold text-xs">BNB</span></div>
+                <div><p class="font-semibold text-white">BNB</p><p class="text-xs text-gray-400">BNB</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 BNB</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="polkadot dot">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-pink-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-pink-400 font-bold text-sm">●</span></div>
+                <div><p class="font-semibold text-white">Polkadot</p><p class="text-xs text-gray-400">DOT</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 DOT</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="shiba inu shib">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-orange-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-orange-400 font-bold text-xs">🐕</span></div>
+                <div><p class="font-semibold text-white">Shiba Inu</p><p class="text-xs text-gray-400">SHIB</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 SHIB</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Crypto" data-name="avalanche avax">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-red-400 font-bold text-xs">▲</span></div>
+                <div><p class="font-semibold text-white">Avalanche</p><p class="text-xs text-gray-400">AVAX</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 AVAX</p></div>
+        </div>
+
+        <!-- Stocks Header -->
+        <div class="asset-item" data-type="Stocks">
+            <div class="px-4 py-2 bg-dark-hover"><p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Stocks</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="apple aapl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gray-500 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fab fa-apple text-gray-300"></i></div>
+                <div><p class="font-semibold text-white">Apple</p><p class="text-xs text-gray-400">NASDAQ:AAPL</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 AAPL</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="tesla tsla">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-red-400 font-bold text-sm">T</span></div>
+                <div><p class="font-semibold text-white">Tesla</p><p class="text-xs text-gray-400">NASDAQ:TSLA</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 TSLA</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="amazon amzn">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-orange-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-orange-400 font-bold text-sm">a</span></div>
+                <div><p class="font-semibold text-white">Amazon</p><p class="text-xs text-gray-400">NASDAQ:AMZN</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 AMZN</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="microsoft msft">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-blue-400 font-bold text-sm">⊞</span></div>
+                <div><p class="font-semibold text-white">Microsoft</p><p class="text-xs text-gray-400">NASDAQ:MSFT</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 MSFT</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="google alphabet googl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-yellow-400 font-bold text-sm">G</span></div>
+                <div><p class="font-semibold text-white">Alphabet (Google)</p><p class="text-xs text-gray-400">NASDAQ:GOOGL</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 GOOGL</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="meta facebook meta">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-600 bg-opacity-20 rounded-full flex items-center justify-center"><i class="fab fa-facebook text-blue-400"></i></div>
+                <div><p class="font-semibold text-white">Meta</p><p class="text-xs text-gray-400">NASDAQ:META</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 META</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="nvidia nvda">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-600 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-green-400 font-bold text-xs">NV</span></div>
+                <div><p class="font-semibold text-white">NVIDIA</p><p class="text-xs text-gray-400">NASDAQ:NVDA</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 NVDA</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 border-b border-dark-border hover:bg-dark-hover transition" data-type="Stocks" data-name="netflix nflx">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-red-600 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-red-400 font-bold text-sm">N</span></div>
+                <div><p class="font-semibold text-white">Netflix</p><p class="text-xs text-gray-400">NASDAQ:NFLX</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 NFLX</p></div>
+        </div>
+        <div class="asset-item flex items-center justify-between p-4 hover:bg-dark-hover transition" data-type="Stocks" data-name="coinbase coin">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center"><span class="text-blue-400 font-bold text-sm">C</span></div>
+                <div><p class="font-semibold text-white">Coinbase</p><p class="text-xs text-gray-400">NASDAQ:COIN</p></div>
+            </div>
+            <div class="text-right"><p class="font-semibold text-white">$0.00</p><p class="text-xs text-gray-400">0.00 COIN</p></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let activeFilter = 'All';
+function filterTab(tab) {
+    activeFilter = tab;
+    ['All','Fiat','Crypto','Stocks'].forEach(t => {
+        const btn = document.getElementById('filter-'+t);
+        if (t===tab) { btn.className = 'px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-primary-500 text-white whitespace-nowrap'; }
+        else { btn.className = 'px-4 py-2 rounded-full text-xs font-semibold bg-dark-card border border-dark-border text-gray-400 whitespace-nowrap'; }
+    });
+    filterAssets();
+}
+function filterAssets() {
+    const search = document.getElementById('asset-search').value.toLowerCase();
+    document.querySelectorAll('.asset-item').forEach(el => {
+        const type = el.dataset.type || '';
+        const name = (el.dataset.name || '').toLowerCase();
+        const typeMatch = activeFilter === 'All' || type === activeFilter;
+        const searchMatch = !search || name.includes(search);
+        el.style.display = (typeMatch && (searchMatch || !el.dataset.name)) ? '' : 'none';
+    });
+}
+async function loadPrices() {
+    try {
+        const r = await fetch('/api/crypto-prices');
+        const d = await r.json();
+        const map = {
+            'a-btc-price': d.bitcoin,
+            'a-eth-price': d.ethereum,
+            'a-sol-price': d.solana,
+            'a-xrp-price': d.ripple,
+            'a-doge-price': d.dogecoin,
+            'a-ada-price': d.cardano,
+            'a-ltc-price': d.litecoin,
+        };
+        Object.entries(map).forEach(([id, coin]) => {
+            const el = document.getElementById(id);
+            if (el && coin) el.textContent = '$' + coin.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4});
+        });
+    } catch(e) {}
+}
+loadPrices();
+setInterval(loadPrices, 30000);
+</script>
+{% endblock %}

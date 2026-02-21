@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}Admin — Copy Traders{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <a href="{{ url_for('admin_dashboard') }}" class="text-primary-400 text-sm hover:text-primary-300">
+                <i class="fas fa-arrow-left mr-1"></i> Dashboard
+            </a>
+            <h1 class="text-xl font-bold text-white mt-1">Manage Copy Traders</h1>
+        </div>
+        <button onclick="document.getElementById('add-modal').classList.remove('hidden')"
+            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2">
+            <i class="fas fa-plus"></i> Add Trader
+        </button>
+    </div>
+
+    <!-- Traders List -->
+    <div class="space-y-3">
+        {% for t in traders %}
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-4">
+
+            <!-- Top row: avatar + name + badge + action buttons -->
+            <div class="flex items-center gap-3 mb-3">
+                <img src="{{ t['photo'] }}" alt="{{ t['name'] }}"
+                    class="w-12 h-12 rounded-full object-cover border-2 border-dark-border flex-shrink-0"
+                    onerror="this.src='https://randomuser.me/api/portraits/men/1.jpg'">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-white font-bold text-sm">{{ t['name'] }}</span>
+                        <span class="text-gray-400 text-xs">{{ t['country'] }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full {% if t['is_active'] %}bg-green-900 text-green-400{% else %}bg-gray-800 text-gray-500{% endif %}">
+                            {{ 'Active' if t['is_active'] else 'Hidden' }}
+                        </span>
+                    </div>
+                    <p class="text-gray-500 text-xs mt-0.5">{{ t['profit_share'] }}% profit share</p>
+                </div>
+                <!-- Action buttons always on the right -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <button onclick="openEdit({{ t['id'] }}, '{{ t['name'] }}', '{{ t['country'] }}', '{{ t['photo'] }}', {{ t['roi'] }}, {{ t['win_rate'] }}, {{ t['wins'] }}, {{ t['losses'] }}, {{ t['copiers'] }}, {{ t['profit_share'] }}, {{ t['is_active'] }})"
+                        class="w-9 h-9 flex items-center justify-center bg-dark-hover hover:bg-primary-600 border border-dark-border text-white rounded-xl transition">
+                        <i class="fas fa-edit text-xs"></i>
+                    </button>
+                    <form method="POST" action="{{ url_for('admin_delete_trader', trader_id=t['id']) }}"
+                        onsubmit="return confirm('Remove {{ t['name'] }}?')">
+                        <button type="submit"
+                            class="w-9 h-9 flex items-center justify-center bg-dark-hover hover:bg-red-600 border border-dark-border text-white rounded-xl transition">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Stats grid — 5 across on desktop, 3+2 on mobile -->
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-gray-500 text-xs leading-none mb-1">ROI</p>
+                    <p class="text-green-400 font-bold text-sm">{{ t['roi'] }}%</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-gray-500 text-xs leading-none mb-1">Win Rate</p>
+                    <p class="text-white font-bold text-sm">{{ t['win_rate'] }}%</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-gray-500 text-xs leading-none mb-1">Wins</p>
+                    <p class="text-white font-bold text-sm">{{ t['wins'] }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center">
+                    <p class="text-gray-500 text-xs leading-none mb-1">Losses</p>
+                    <p class="text-red-400 font-bold text-sm">{{ t['losses'] }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-2 text-center col-span-1 sm:col-span-1 col-start-2 sm:col-start-auto">
+                    <p class="text-gray-500 text-xs leading-none mb-1">Copiers</p>
+                    <p class="text-white font-bold text-sm">{{ t['copiers'] }}</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-10 text-center text-gray-500">
+            <i class="fas fa-user-tie text-3xl mb-3 block text-gray-700"></i>
+            No traders yet. Click "Add Trader" to get started.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ===== ADD MODAL ===== -->
+<div id="add-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-dark-card border border-dark-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border sticky top-0 bg-dark-card z-10">
+            <h3 class="text-base font-bold text-white">Add New Trader</h3>
+            <button onclick="document.getElementById('add-modal').classList.add('hidden')"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-dark-hover rounded-lg transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('admin_add_trader') }}" class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Full Name *</label>
+                    <input type="text" name="name" required placeholder="e.g. John Smith"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Country</label>
+                    <input type="text" name="country" placeholder="e.g. USA"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Profit Share (%)</label>
+                    <input type="number" name="profit_share" value="10" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Photo URL <span class="text-gray-600">(leave blank for default)</span></label>
+                    <input type="text" name="photo" placeholder="https://randomuser.me/api/portraits/men/1.jpg"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">ROI (%)</label>
+                    <input type="number" name="roi" value="0" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Win Rate (%)</label>
+                    <input type="number" name="win_rate" value="0" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Total Wins</label>
+                    <input type="number" name="wins" value="0"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Total Losses</label>
+                    <input type="number" name="losses" value="0"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Copiers</label>
+                    <input type="number" name="copiers" value="0"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+            </div>
+            <div class="flex gap-3 pt-1">
+                <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold text-sm transition">Add Trader</button>
+                <button type="button" onclick="document.getElementById('add-modal').classList.add('hidden')"
+                    class="flex-1 bg-dark-hover text-gray-400 hover:text-white py-3 rounded-xl font-semibold text-sm transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== EDIT MODAL ===== -->
+<div id="edit-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-dark-card border border-dark-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border sticky top-0 bg-dark-card z-10">
+            <h3 class="text-base font-bold text-white">Edit Trader</h3>
+            <button onclick="document.getElementById('edit-modal').classList.add('hidden')"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-dark-hover rounded-lg transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="edit-form" method="POST" class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Full Name</label>
+                    <input type="text" name="name" id="edit-name" required
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Country</label>
+                    <input type="text" name="country" id="edit-country"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Profit Share (%)</label>
+                    <input type="number" name="profit_share" id="edit-profit_share" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div class="col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Photo URL</label>
+                    <input type="text" name="photo" id="edit-photo"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">ROI (%)</label>
+                    <input type="number" name="roi" id="edit-roi" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Win Rate (%)</label>
+                    <input type="number" name="win_rate" id="edit-win_rate" step="0.1"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Total Wins</label>
+                    <input type="number" name="wins" id="edit-wins"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Total Losses</label>
+                    <input type="number" name="losses" id="edit-losses"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Copiers</label>
+                    <input type="number" name="copiers" id="edit-copiers"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Status</label>
+                    <select name="is_active" id="edit-is_active"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                        <option value="1">Active</option>
+                        <option value="0">Hidden</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-1">
+                <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold text-sm transition">Save Changes</button>
+                <button type="button" onclick="document.getElementById('edit-modal').classList.add('hidden')"
+                    class="flex-1 bg-dark-hover text-gray-400 hover:text-white py-3 rounded-xl font-semibold text-sm transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEdit(id, name, country, photo, roi, win_rate, wins, losses, copiers, profit_share, is_active) {
+    document.getElementById('edit-form').action = `/admin/traders/edit/${id}`;
+    document.getElementById('edit-name').value = name;
+    document.getElementById('edit-country').value = country;
+    document.getElementById('edit-photo').value = photo;
+    document.getElementById('edit-roi').value = roi;
+    document.getElementById('edit-win_rate').value = win_rate;
+    document.getElementById('edit-wins').value = wins;
+    document.getElementById('edit-losses').value = losses;
+    document.getElementById('edit-copiers').value = copiers;
+    document.getElementById('edit-profit_share').value = profit_share;
+    document.getElementById('edit-is_active').value = is_active;
+    document.getElementById('edit-modal').classList.remove('hidden');
+}
+// Close modals on backdrop tap (mobile friendly)
+['add-modal','edit-modal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}

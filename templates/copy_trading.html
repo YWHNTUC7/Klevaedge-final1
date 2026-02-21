@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Copy Experts - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-6 space-y-5">
+    <div>
+        <h1 class="text-2xl font-bold text-white">Copy Experts</h1>
+        <p class="text-gray-400 text-sm">Earn returns by copying professional traders</p>
+    </div>
+    <h2 class="text-lg font-bold text-white">Experts ({{ top_traders|length }})</h2>
+    <div class="space-y-4">
+        {% for trader in top_traders %}
+        {% set is_following = copy_trades and copy_trades|selectattr('trader_name','equalto',trader.name)|selectattr('status','equalto','Active')|list %}
+        <div class="bg-dark-card rounded-2xl border border-dark-border p-5 space-y-4">
+            <!-- Header -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <img src="{{ trader.photo }}" alt="{{ trader.name }}"
+                            class="w-14 h-14 rounded-full object-cover border-2 border-dark-border"
+                            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="w-14 h-14 bg-gradient-to-br from-primary-600 to-primary-800 rounded-full items-center justify-center text-white font-bold text-lg border-2 border-dark-border hidden">
+                            {{ trader.name[0] }}
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-dark-card"></div>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2 flex-wrap gap-1">
+                            <p class="font-bold text-white">{{ trader.name }}</p>
+                            {% if trader.roi > 300 %}<span class="text-yellow-400 text-sm">⚡</span>{% endif %}
+                            <div class="w-5 h-5 bg-primary-600 rounded-full flex items-center justify-center"><i class="fas fa-check text-white text-xs"></i></div>
+                        </div>
+                        <p class="text-xs text-gray-500">{{ trader.country }} • {{ trader.copiers|int }} followers</p>
+                        {% if is_following %}
+                        <span class="text-xs bg-primary-600 bg-opacity-20 border border-primary-600 border-opacity-40 text-primary-400 px-3 py-1 rounded-full mt-1 inline-block">Following</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-green-400 font-bold text-lg">+{{ trader.roi }}%</p>
+                    <p class="text-xs text-gray-500">Total ROI</p>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Win Rate</p>
+                    <p class="font-bold text-white">{{ trader.win_rate }}%</p>
+                    <div class="progress-bar mt-1"><div class="progress-fill" style="width:{{ trader.win_rate }}%"></div></div>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Wins</p>
+                    <p class="font-bold text-white">{{ "{:,}".format(trader.wins) }}</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Profit Share</p>
+                    <p class="font-bold text-white">{{ trader.profit_share }}%</p>
+                </div>
+                <div class="bg-dark-hover rounded-xl p-3">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Losses</p>
+                    <p class="font-bold text-white">{{ "{:,}".format(trader.losses) }}</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if is_following %}
+            <form method="POST" action="/stop-copy-trade/{{ is_following[0]['id'] }}">
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition">Stop Copying</button>
+            </form>
+            {% else %}
+            <form method="POST" action="/start-copy-trade" class="space-y-2">
+                <input type="hidden" name="trader_name" value="{{ trader.name }}">
+                <input type="number" name="amount" placeholder="Amount ($)" value="100" min="10"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold transition glow">
+                    <i class="fas fa-copy mr-2"></i>Copy Trader
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- My Copy Trades -->
+    {% if copy_trades %}
+    <h2 class="text-lg font-bold text-white pt-2">My Copy Trades</h2>
+    <div class="bg-dark-card rounded-2xl border border-dark-border overflow-hidden">
+        {% for trade in copy_trades %}
+        <div class="flex items-center justify-between p-4 border-b border-dark-border last:border-0">
+            <div>
+                <p class="font-semibold text-white text-sm">{{ trade['trader_name'] }}</p>
+                <p class="text-xs text-gray-400">{{ trade['status'] }} • ${{ "%.2f"|format(trade['amount']) }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-green-400 font-semibold text-sm">+${{ "%.2f"|format(trade['total_profit']) }}</p>
+                <p class="text-xs {% if trade['status']=='Active' %}text-green-400{% else %}text-gray-500{% endif %}">{{ trade['status'] }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

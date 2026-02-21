@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Contact Us - Klevaedge{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-white mb-2">Contact Us</h1>
+        <p class="text-gray-400">Get in touch with our support team</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Form -->
+        <div class="bg-dark-card border border-dark-border rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-white mb-5">Send us a message</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Full Name</label>
+                    <input type="text" id="c-name" placeholder="John Doe"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                    <input type="email" id="c-email" placeholder="you@example.com"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Subject</label>
+                    <input type="text" id="c-subject" placeholder="How can we help?"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Message</label>
+                    <textarea id="c-message" rows="5" placeholder="Tell us more about your inquiry..."
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 placeholder-gray-600 resize-none"></textarea>
+                </div>
+                <button onclick="submitContact()" class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-semibold transition glow flex items-center justify-center">
+                    <i class="fas fa-paper-plane mr-2"></i> Send Message
+                </button>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="space-y-5">
+            <div class="bg-dark-card border border-dark-border rounded-2xl p-6 space-y-5">
+                <h2 class="text-xl font-bold text-white">Contact Information</h2>
+                <div class="flex items-start space-x-4">
+                    <div class="w-11 h-11 bg-blue-500 bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-envelope text-blue-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-white text-sm">Email</p>
+                        <a href="mailto:support@klevaedge.com" class="text-primary-400 hover:text-primary-300 text-sm break-all">support@klevaedge.com</a>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div class="w-11 h-11 bg-green-500 bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fab fa-whatsapp text-green-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-white text-sm">WhatsApp</p>
+                        <a href="https://wa.me/1234567890" target="_blank" class="text-green-400 hover:text-green-300 text-sm">+1 (234) 567-890</a>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div class="w-11 h-11 bg-purple-500 bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fab fa-telegram text-purple-400"></i>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-white text-sm">Telegram</p>
+                        <a href="https://t.me/klevaedgesupport" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm">@klevaedgesupport</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-primary-600 to-primary-800 rounded-2xl p-6 text-white">
+                <h3 class="text-xl font-bold mb-4">Business Hours</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-blue-200">Monday – Friday</span>
+                        <span class="font-bold">24/7</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-blue-200">Saturday – Sunday</span>
+                        <span class="font-bold">24/7</span>
+                    </div>
+                </div>
+                <div class="mt-5 pt-5 border-t border-white border-opacity-20 text-sm text-blue-100">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Our support team is available around the clock to assist you with any questions or concerns.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitContact() {
+    const name = document.getElementById('c-name').value.trim();
+    const email = document.getElementById('c-email').value.trim();
+    const subject = document.getElementById('c-subject').value.trim();
+    const message = document.getElementById('c-message').value.trim();
+    if (!name || !email || !subject || !message) {
+        alert('Please fill in all fields.');
+        return;
+    }
+    alert('Thank you for your message, ' + name + '! Our support team will get back to you within 24 hours.');
+    document.getElementById('c-name').value = '';
+    document.getElementById('c-email').value = '';
+    document.getElementById('c-subject').value = '';
+    document.getElementById('c-message').value = '';
+}
+</script>
+{% endblock %}
