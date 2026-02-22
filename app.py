@@ -215,16 +215,30 @@ def migrate_db():
     db.close()
 
 def get_wallets():
-    db = get_db()
-    rows = db.execute('SELECT * FROM wallet_addresses WHERE is_active=1 ORDER BY id').fetchall()
-    db.close()
-    return [dict(r) for r in rows]
+    try:
+        db = get_db()
+        rows = db.execute('SELECT * FROM wallet_addresses WHERE is_active=1 ORDER BY id').fetchall()
+        db.close()
+        return [dict(r) for r in rows]
+    except:
+        migrate_db()
+        db = get_db()
+        rows = db.execute('SELECT * FROM wallet_addresses WHERE is_active=1 ORDER BY id').fetchall()
+        db.close()
+        return [dict(r) for r in rows]
 
 def get_contact():
-    db = get_db()
-    row = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
-    db.close()
-    return dict(row) if row else {}
+    try:
+        db = get_db()
+        row = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
+        db.close()
+        return dict(row) if row else {}
+    except:
+        migrate_db()
+        db = get_db()
+        row = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
+        db.close()
+        return dict(row) if row else {}
 
 # Admin credentials (change these!)
 ADMIN_EMAIL = 'admin@cryptobroker.com'
@@ -422,6 +436,7 @@ def get_admin_notifications():
 @app.route('/admin/wallets')
 @admin_required
 def admin_wallets():
+    migrate_db()  # ensure tables exist on every call
     db = get_db()
     wallets = db.execute('SELECT * FROM wallet_addresses ORDER BY id').fetchall()
     contact = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
