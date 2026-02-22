@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Admin — Wallets & Contact{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="text-primary-400 text-sm hover:text-primary-300">
+            <i class="fas fa-arrow-left mr-1"></i> Dashboard
+        </a>
+        <h1 class="text-xl font-bold text-white mt-1">Wallets & Contact Info</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+        <div class="px-4 py-3 rounded-xl text-sm {% if cat=='error' %}bg-red-900 bg-opacity-40 border border-red-700 text-red-300{% else %}bg-green-900 bg-opacity-40 border border-green-700 text-green-300{% endif %}">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- ===== WALLET ADDRESSES ===== -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-primary-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-wallet text-primary-400 text-sm"></i>
+                </div>
+                <h2 class="text-white font-bold">Deposit Wallet Addresses</h2>
+            </div>
+            <button onclick="document.getElementById('add-wallet-modal').classList.remove('hidden')"
+                class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> Add Coin
+            </button>
+        </div>
+
+        <div class="divide-y divide-dark-border">
+            {% for w in wallets %}
+            <div class="px-5 py-4">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-dark-hover rounded-full flex items-center justify-center font-bold text-white text-sm flex-shrink-0">
+                            {{ w['icon'] }}
+                        </div>
+                        <div>
+                            <p class="text-white font-semibold text-sm">{{ w['coin_name'] }}
+                                <span class="text-gray-500 text-xs font-normal ml-1">{{ w['symbol'] }}</span>
+                            </p>
+                            <p class="text-gray-500 text-xs font-mono break-all">{{ w['address'] }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <span class="text-xs px-2 py-0.5 rounded-full {% if w['is_active'] %}bg-green-900 text-green-400{% else %}bg-gray-800 text-gray-500{% endif %}">
+                            {{ 'Active' if w['is_active'] else 'Hidden' }}
+                        </span>
+                        <button onclick="openEditWallet({{ w['id'] }}, '{{ w['coin_name'] }}', '{{ w['symbol'] }}', '{{ w['icon'] }}', `{{ w['address'] }}`, {{ w['is_active'] }})"
+                            class="w-8 h-8 flex items-center justify-center bg-dark-hover hover:bg-primary-600 border border-dark-border text-white rounded-lg transition">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <form method="POST" action="{{ url_for('admin_delete_wallet', wallet_id=w['id']) }}"
+                            onsubmit="return confirm('Remove {{ w['coin_name'] }}?')">
+                            <button type="submit"
+                                class="w-8 h-8 flex items-center justify-center bg-dark-hover hover:bg-red-600 border border-dark-border text-white rounded-lg transition">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-gray-500 text-sm">No wallets yet. Click "Add Coin" to add one.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- ===== CONTACT INFO ===== -->
+    <div class="bg-dark-card border border-dark-border rounded-2xl overflow-hidden">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-dark-border">
+            <div class="w-8 h-8 bg-green-600 bg-opacity-20 rounded-lg flex items-center justify-center">
+                <i class="fas fa-address-book text-green-400 text-sm"></i>
+            </div>
+            <h2 class="text-white font-bold">Contact Information</h2>
+        </div>
+        <form method="POST" action="{{ url_for('admin_update_contact') }}" class="p-5 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="sm:col-span-2">
+                    <label class="text-gray-400 text-xs mb-1.5 block">Support Email</label>
+                    <input type="email" name="email" value="{{ contact.email if contact else '' }}"
+                        placeholder="support@klevaedge.com"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">WhatsApp Display Number</label>
+                    <input type="text" name="whatsapp" value="{{ contact.whatsapp if contact else '' }}"
+                        placeholder="+234 800 000 0000"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">WhatsApp Link <span class="text-gray-600">(wa.me/...)</span></label>
+                    <input type="text" name="whatsapp_link" value="{{ contact.whatsapp_link if contact else '' }}"
+                        placeholder="https://wa.me/2348000000000"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Telegram Display Name</label>
+                    <input type="text" name="telegram" value="{{ contact.telegram if contact else '' }}"
+                        placeholder="@klevaedgesupport"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Telegram Link <span class="text-gray-600">(t.me/...)</span></label>
+                    <input type="text" name="telegram_link" value="{{ contact.telegram_link if contact else '' }}"
+                        placeholder="https://t.me/klevaedgesupport"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+            </div>
+            <button type="submit"
+                class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold text-sm transition">
+                <i class="fas fa-save mr-2"></i> Save Contact Info
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ADD WALLET MODAL -->
+<div id="add-wallet-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-dark-card border border-dark-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
+            <h3 class="text-base font-bold text-white">Add New Coin</h3>
+            <button onclick="document.getElementById('add-wallet-modal').classList.add('hidden')"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-dark-hover rounded-lg transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('admin_add_wallet') }}" class="p-5 space-y-3">
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Coin ID <span class="text-gray-600">(unique, no spaces e.g. bitcoin, bnb)</span></label>
+                <input type="text" name="coin_id" required placeholder="e.g. bnb"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Coin Name</label>
+                    <input type="text" name="coin_name" required placeholder="e.g. BNB"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Symbol</label>
+                    <input type="text" name="symbol" required placeholder="e.g. BNB"
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+            </div>
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Icon/Emoji <span class="text-gray-600">(paste a symbol or emoji)</span></label>
+                <input type="text" name="icon" placeholder="e.g. ₿ or 🟡"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+            </div>
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Wallet Address</label>
+                <input type="text" name="address" required placeholder="Paste wallet address here"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+            </div>
+            <div class="flex gap-3 pt-1">
+                <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold text-sm transition">Add Coin</button>
+                <button type="button" onclick="document.getElementById('add-wallet-modal').classList.add('hidden')"
+                    class="flex-1 bg-dark-hover text-gray-400 hover:text-white py-3 rounded-xl font-semibold text-sm transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT WALLET MODAL -->
+<div id="edit-wallet-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-dark-card border border-dark-border rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-dark-border">
+            <h3 class="text-base font-bold text-white">Edit Wallet</h3>
+            <button onclick="document.getElementById('edit-wallet-modal').classList.add('hidden')"
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-dark-hover rounded-lg transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="edit-wallet-form" method="POST" class="p-5 space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Coin Name</label>
+                    <input type="text" name="coin_name" id="ew-name" required
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+                <div>
+                    <label class="text-gray-400 text-xs mb-1.5 block">Symbol</label>
+                    <input type="text" name="symbol" id="ew-symbol" required
+                        class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                </div>
+            </div>
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Icon/Emoji</label>
+                <input type="text" name="icon" id="ew-icon"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+            </div>
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Wallet Address</label>
+                <input type="text" name="address" id="ew-address" required
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+            </div>
+            <div>
+                <label class="text-gray-400 text-xs mb-1.5 block">Status</label>
+                <select name="is_active" id="ew-status"
+                    class="w-full bg-dark-hover border border-dark-border text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500">
+                    <option value="1">Active</option>
+                    <option value="0">Hidden</option>
+                </select>
+            </div>
+            <div class="flex gap-3 pt-1">
+                <button type="submit" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl font-semibold text-sm transition">Save Changes</button>
+                <button type="button" onclick="document.getElementById('edit-wallet-modal').classList.add('hidden')"
+                    class="flex-1 bg-dark-hover text-gray-400 hover:text-white py-3 rounded-xl font-semibold text-sm transition">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditWallet(id, name, symbol, icon, address, isActive) {
+    document.getElementById('edit-wallet-form').action = `/admin/wallets/edit/${id}`;
+    document.getElementById('ew-name').value = name;
+    document.getElementById('ew-symbol').value = symbol;
+    document.getElementById('ew-icon').value = icon;
+    document.getElementById('ew-address').value = address;
+    document.getElementById('ew-status').value = isActive;
+    document.getElementById('edit-wallet-modal').classList.remove('hidden');
+}
+['add-wallet-modal','edit-wallet-modal'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
+    });
+});
+</script>
+{% endblock %}
