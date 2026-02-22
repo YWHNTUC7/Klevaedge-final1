@@ -159,7 +159,9 @@
 
 <script>
 const wallets = {{ wallets|tojson }};
-const syms = {bitcoin:'BTC', ethereum:'ETH', usdt:'USDT', litecoin:'LTC'};
+const syms = {};
+{% for w in wallet_list %}syms['{{ w.coin_id }}'] = '{{ w.symbol }}';
+{% endfor %}
 
 function selectCrypto(key, sym, icon) {
     // Reset all buttons
