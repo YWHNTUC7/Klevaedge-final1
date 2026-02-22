@@ -48,7 +48,7 @@
                     </div>
                     <div>
                         <p class="font-semibold text-white text-sm">Email</p>
-                        <a href="mailto:support@klevaedge.com" class="text-primary-400 hover:text-primary-300 text-sm break-all">support@klevaedge.com</a>
+                        <a href="mailto:{{ contact.email }}" class="text-primary-400 hover:text-primary-300 text-sm break-all">{{ contact.email }}</a>
                     </div>
                 </div>
                 <div class="flex items-start space-x-4">
@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <p class="font-semibold text-white text-sm">WhatsApp</p>
-                        <a href="https://wa.me/1234567890" target="_blank" class="text-green-400 hover:text-green-300 text-sm">+1 (234) 567-890</a>
+                        <a href="{{ contact.whatsapp_link }}" target="_blank" class="text-green-400 hover:text-green-300 text-sm">{{ contact.whatsapp }}</a>
                     </div>
                 </div>
                 <div class="flex items-start space-x-4">
@@ -66,7 +66,7 @@
                     </div>
                     <div>
                         <p class="font-semibold text-white text-sm">Telegram</p>
-                        <a href="https://t.me/klevaedgesupport" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm">@klevaedgesupport</a>
+                        <a href="{{ contact.telegram_link }}" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm">{{ contact.telegram }}</a>
                     </div>
                 </div>
             </div>
