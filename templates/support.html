@@ -15,7 +15,7 @@
             </div>
             <h3 class="font-bold text-white mb-2">Email Support</h3>
             <p class="text-gray-400 text-sm mb-3">Get help via email within 24 hours</p>
-            <a href="mailto:support@klevaedge.com" class="text-primary-400 hover:text-primary-300 text-sm font-semibold break-all">support@klevaedge.com</a>
+            <a href="mailto:{{ contact.email }}" class="text-primary-400 hover:text-primary-300 text-sm font-semibold break-all">{{ contact.email }}</a>
         </div>
         <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center hover:border-green-500 transition">
             <div class="w-14 h-14 bg-green-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -23,7 +23,7 @@
             </div>
             <h3 class="font-bold text-white mb-2">WhatsApp</h3>
             <p class="text-gray-400 text-sm mb-3">Chat with us on WhatsApp instantly</p>
-            <a href="https://wa.me/1234567890" target="_blank" class="text-green-400 hover:text-green-300 text-sm font-semibold">+1 (234) 567-890</a>
+            <a href="{{ contact.whatsapp_link }}" target="_blank" class="text-green-400 hover:text-green-300 text-sm font-semibold">{{ contact.whatsapp }}</a>
         </div>
         <div class="bg-dark-card border border-dark-border rounded-2xl p-6 text-center hover:border-purple-500 transition">
             <div class="w-14 h-14 bg-purple-500 bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -31,7 +31,7 @@
             </div>
             <h3 class="font-bold text-white mb-2">Telegram</h3>
             <p class="text-gray-400 text-sm mb-3">Join our support group on Telegram</p>
-            <a href="https://t.me/klevaedgesupport" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm font-semibold">@klevaedgesupport</a>
+            <a href="{{ contact.telegram_link }}" target="_blank" class="text-purple-400 hover:text-purple-300 text-sm font-semibold">{{ contact.telegram }}</a>
         </div>
     </div>
 
