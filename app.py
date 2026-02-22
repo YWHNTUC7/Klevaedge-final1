@@ -151,7 +151,6 @@ def init_db_tables():
 
 def init_db():
     init_db_tables()
-migrate_db()
 
 def seed_traders():
     db = get_db()
@@ -213,6 +212,8 @@ def migrate_db():
         db.executemany('INSERT OR IGNORE INTO wallet_addresses (coin_id,coin_name,symbol,icon,address,is_active) VALUES (?,?,?,?,?,?)', wallets)
     db.commit()
     db.close()
+
+migrate_db()  # run after definition
 
 def get_wallets():
     try:
