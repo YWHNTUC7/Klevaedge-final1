@@ -178,13 +178,17 @@ def seed_traders():
         db.commit()
     db.close()
 
-# Wallet addresses (change these to your actual addresses)
-WALLET_ADDRESSES = {
-    'bitcoin': 'bc1qwvam7n34ca68l0ukgm2za63pxprhw7gx2jh477',
-    'ethereum': '0x7Bc2EbbEbeB692091c201ed6f9E75720B4Dd965d',
-    'usdt': 'THtq4hFQbdBCD6zZTMu2aj8WnWMaUDjYfR',
-    'litecoin': 'ltc1qs3glhf2ymryfpce8sxk32lj7u9xu7zuv0dayxv'
-}
+def get_wallets():
+    db = get_db()
+    rows = db.execute('SELECT * FROM wallet_addresses WHERE is_active=1 ORDER BY id').fetchall()
+    db.close()
+    return [dict(r) for r in rows]
+
+def get_contact():
+    db = get_db()
+    row = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
+    db.close()
+    return dict(row) if row else {}
 
 # Admin credentials (change these!)
 ADMIN_EMAIL = 'admin@cryptobroker.com'
@@ -378,6 +382,75 @@ def get_admin_notifications():
     notifs.sort(key=lambda x: x['created_at'], reverse=True)
     return jsonify(notifs[:20])
 
+# Admin Wallet Management
+@app.route('/admin/wallets')
+@admin_required
+def admin_wallets():
+    db = get_db()
+    wallets = db.execute('SELECT * FROM wallet_addresses ORDER BY id').fetchall()
+    contact = db.execute('SELECT * FROM contact_info WHERE id=1').fetchone()
+    db.close()
+    return render_template('admin/wallets.html', wallets=wallets, contact=contact)
+
+@app.route('/admin/wallets/add', methods=['POST'])
+@admin_required
+def admin_add_wallet():
+    coin_id = request.form.get('coin_id','').strip().lower().replace(' ','_')
+    coin_name = request.form.get('coin_name','').strip()
+    symbol = request.form.get('symbol','').strip().upper()
+    icon = request.form.get('icon','₿').strip()
+    address = request.form.get('address','').strip()
+    if coin_id and coin_name and address:
+        db = get_db()
+        try:
+            db.execute('INSERT INTO wallet_addresses (coin_id,coin_name,symbol,icon,address) VALUES (?,?,?,?,?)',
+                      (coin_id, coin_name, symbol, icon, address))
+            db.commit()
+            flash(f'{coin_name} wallet added!', 'success')
+        except:
+            flash('Coin ID already exists. Use a unique ID.', 'error')
+        db.close()
+    return redirect(url_for('admin_wallets'))
+
+@app.route('/admin/wallets/edit/<int:wallet_id>', methods=['POST'])
+@admin_required
+def admin_edit_wallet(wallet_id):
+    db = get_db()
+    db.execute('UPDATE wallet_addresses SET coin_name=?, symbol=?, icon=?, address=?, is_active=? WHERE id=?',
+              (request.form.get('coin_name'), request.form.get('symbol','').upper(),
+               request.form.get('icon','₿'), request.form.get('address'),
+               int(request.form.get('is_active', 1)), wallet_id))
+    db.commit()
+    db.close()
+    flash('Wallet updated!', 'success')
+    return redirect(url_for('admin_wallets'))
+
+@app.route('/admin/wallets/delete/<int:wallet_id>', methods=['POST'])
+@admin_required
+def admin_delete_wallet(wallet_id):
+    db = get_db()
+    db.execute('DELETE FROM wallet_addresses WHERE id=?', (wallet_id,))
+    db.commit()
+    db.close()
+    flash('Wallet removed.', 'success')
+    return redirect(url_for('admin_wallets'))
+
+@app.route('/admin/contact/update', methods=['POST'])
+@admin_required
+def admin_update_contact():
+    email = request.form.get('email','').strip()
+    whatsapp = request.form.get('whatsapp','').strip()
+    whatsapp_link = request.form.get('whatsapp_link','').strip()
+    telegram = request.form.get('telegram','').strip()
+    telegram_link = request.form.get('telegram_link','').strip()
+    db = get_db()
+    db.execute('UPDATE contact_info SET email=?, whatsapp=?, whatsapp_link=?, telegram=?, telegram_link=? WHERE id=1',
+              (email, whatsapp, whatsapp_link, telegram, telegram_link))
+    db.commit()
+    db.close()
+    flash('Contact info updated!', 'success')
+    return redirect(url_for('admin_wallets'))
+
 # Routes
 @app.route('/')
 def index():
@@ -385,7 +458,8 @@ def index():
 
 @app.route('/support')
 def support():
-    return render_template('support.html')
+    contact = get_contact()
+    return render_template('support.html', contact=contact)
 
 @app.route('/faq')
 def faq():
@@ -393,7 +467,8 @@ def faq():
 
 @app.route('/contact')
 def contact():
-    return render_template('contact.html')
+    contact = get_contact()
+    return render_template('contact.html', contact=contact)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -603,7 +678,9 @@ def deposit():
     db = get_db()
     deposits = db.execute("SELECT * FROM transactions WHERE user_id = ? AND type = 'Deposit' ORDER BY created_at DESC", (session['user_id'],)).fetchall()
     db.close()
-    return render_template('deposit.html', wallets=WALLET_ADDRESSES, deposits=deposits)
+    wallets = get_wallets()
+    wallets_dict = {w['coin_id']: w['address'] for w in wallets}
+    return render_template('deposit.html', wallets=wallets_dict, wallet_list=wallets, deposits=deposits)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
@@ -631,7 +708,9 @@ def withdraw():
             flash(f'Withdrawal request for ${amount} submitted!', 'success')
     withdrawals = db.execute("SELECT * FROM transactions WHERE user_id = ? AND type = 'Withdrawal' ORDER BY created_at DESC", (session['user_id'],)).fetchall()
     db.close()
-    return render_template('withdraw.html', user=user, wallets=WALLET_ADDRESSES, withdrawals=withdrawals)
+    wallets = get_wallets()
+    wallets_dict = {w['coin_id']: w['address'] for w in wallets}
+    return render_template('withdraw.html', user=user, wallets=wallets_dict, wallet_list=wallets, withdrawals=withdrawals)
 
 @app.route('/transactions')
 @login_required
