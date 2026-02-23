@@ -180,8 +180,10 @@ def seed_traders():
 
 def migrate_db():
     """Add any missing tables to existing database - safe to run every startup."""
-    db = get_db()
-    db.execute('''CREATE TABLE IF NOT EXISTS wallet_addresses (
+    # Use direct connection to avoid dependency on get_db() which may not be defined yet
+    conn = sqlite3.connect(os.environ.get('DB_PATH', '/tmp/crypto_broker.db'))
+    conn.row_factory = sqlite3.Row
+    conn.execute('''CREATE TABLE IF NOT EXISTS wallet_addresses (
                   id INTEGER PRIMARY KEY AUTOINCREMENT,
                   coin_id TEXT UNIQUE NOT NULL,
                   coin_name TEXT NOT NULL,
@@ -190,7 +192,7 @@ def migrate_db():
                   address TEXT NOT NULL,
                   is_active INTEGER DEFAULT 1
                 )''')
-    db.execute('''CREATE TABLE IF NOT EXISTS contact_info (
+    conn.execute('''CREATE TABLE IF NOT EXISTS contact_info (
                   id INTEGER PRIMARY KEY,
                   email TEXT DEFAULT 'support@klevaedge.com',
                   whatsapp TEXT DEFAULT '+1234567890',
@@ -198,20 +200,18 @@ def migrate_db():
                   telegram TEXT DEFAULT '@klevaedgesupport',
                   telegram_link TEXT DEFAULT 'https://t.me/klevaedgesupport'
                 )''')
-    # Seed contact info if empty
-    if not db.execute('SELECT COUNT(*) FROM contact_info').fetchone()[0]:
-        db.execute("INSERT INTO contact_info (id,email,whatsapp,whatsapp_link,telegram,telegram_link) VALUES (1,'support@klevaedge.com','+1 (234) 567-890','https://wa.me/1234567890','@klevaedgesupport','https://t.me/klevaedgesupport')")
-    # Seed wallets if empty
-    if not db.execute('SELECT COUNT(*) FROM wallet_addresses').fetchone()[0]:
+    if not conn.execute('SELECT COUNT(*) FROM contact_info').fetchone()[0]:
+        conn.execute("INSERT INTO contact_info (id,email,whatsapp,whatsapp_link,telegram,telegram_link) VALUES (1,'support@klevaedge.com','+1 (234) 567-890','https://wa.me/1234567890','@klevaedgesupport','https://t.me/klevaedgesupport')")
+    if not conn.execute('SELECT COUNT(*) FROM wallet_addresses').fetchone()[0]:
         wallets = [
             ('bitcoin','Bitcoin','BTC','₿','bc1qwvam7n34ca68l0ukgm2za63pxprhw7gx2jh477',1),
             ('ethereum','Ethereum','ETH','Ξ','0x7Bc2EbbEbeB692091c201ed6f9E75720B4Dd965d',1),
             ('usdt','USDT TRC20','USDT','₮','THtq4hFQbdBCD6zZTMu2aj8WnWMaUDjYfR',1),
             ('litecoin','Litecoin','LTC','Ł','ltc1qs3glhf2ymryfpce8sxk32lj7u9xu7zuv0dayxv',1),
         ]
-        db.executemany('INSERT OR IGNORE INTO wallet_addresses (coin_id,coin_name,symbol,icon,address,is_active) VALUES (?,?,?,?,?,?)', wallets)
-    db.commit()
-    db.close()
+        conn.executemany('INSERT OR IGNORE INTO wallet_addresses (coin_id,coin_name,symbol,icon,address,is_active) VALUES (?,?,?,?,?,?)', wallets)
+    conn.commit()
+    conn.close()
 
 migrate_db()  # run after definition
 
