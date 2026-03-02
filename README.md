@@ -42,15 +42,8 @@ WALLET_ADDRESSES = {
 python app.py
 ```
 
-The application will be available at `http://localhost:5000`
 
-## Default Credentials
 
-**Admin Login:**
-- Email: `admin@cryptobroker.com`
-- Password: `admin123`
-
-⚠️ **IMPORTANT:** Change these credentials before deploying to production!
 
 ## Admin Features
 
