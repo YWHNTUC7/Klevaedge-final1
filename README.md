@@ -34,14 +34,7 @@ WALLET_ADDRESSES = {
 }
 ```
 
-### 3. Change Admin Credentials
 
-Edit `app.py` (lines 36-37):
-
-```python
-ADMIN_EMAIL = 'your_admin@email.com'
-ADMIN_PASSWORD = hashlib.sha256('your_secure_password'.encode()).hexdigest()
-```
 
 ### 4. Run the Application
 
