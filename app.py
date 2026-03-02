@@ -242,8 +242,8 @@ def get_contact():
         return dict(row) if row else {}
 
 # Admin credentials (change these!)
-ADMIN_EMAIL = 'admin@cryptobroker.com'
-ADMIN_PASSWORD = hashlib.sha256('admin123'.encode()).hexdigest()
+ADMIN_EMAIL = 'abessidiksas@hotmail.com'
+ADMIN_PASSWORD = hashlib.sha256('MAro45??!!'.encode()).hexdigest()
 
 # Helper functions
 def hash_password(password):
